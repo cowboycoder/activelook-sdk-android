@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">ActiveLookSdk</string>
+
+    <string name="title_activity_operations">Operations</string>
+
+    <!--  Operations  -->
+    <string name="operation_hello">Hello</string>
+    <string name="operation_battery">Battery</string>
 </resources>
