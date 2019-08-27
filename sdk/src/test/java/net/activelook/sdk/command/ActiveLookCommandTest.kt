@@ -17,4 +17,10 @@ class ActiveLookCommandTest {
         assertEquals("power on", command.command)
     }
 
+    @Test
+    fun clear() {
+        val command = ActiveLookCommand.Clear
+        assertEquals("clear", command.command)
+    }
+
 }

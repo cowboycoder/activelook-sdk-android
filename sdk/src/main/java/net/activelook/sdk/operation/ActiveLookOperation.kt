@@ -28,6 +28,12 @@ internal sealed class ActiveLookOperation {
         }
     }
 
+    object ClearScreen : ActiveLookOperation() {
+        override val commands: Array<ActiveLookCommand> = arrayOf(
+            ActiveLookCommand.Clear
+        )
+    }
+
     object GetBattery: ActiveLookOperation() {
         override val commands: Array<ActiveLookCommand> = arrayOf(
             ActiveLookCommand.BatteryLevel
