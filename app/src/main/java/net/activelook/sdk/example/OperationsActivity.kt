@@ -13,6 +13,7 @@ import kotlinx.android.synthetic.main.activity_operations.*
 import kotlinx.android.synthetic.main.list_item_operation_click.view.*
 import kotlinx.android.synthetic.main.list_item_operation_switch.view.*
 import net.activelook.sdk.ActiveLookSdk
+import net.activelook.sdk.operation.ActiveLookOperation
 
 class OperationsActivity : AppCompatActivity() {
 
@@ -32,16 +33,19 @@ class OperationsActivity : AppCompatActivity() {
     private fun initOperations() {
         val operations = listOf(
             OperationClick(getString(R.string.operation_hello)) {
-                ActiveLookSdk.shared.sayHello()
+                ActiveLookSdk.shared.enqueueOperation(ActiveLookOperation.Hello)
             },
             OperationClick(getString(R.string.operation_battery)) {
-                ActiveLookSdk.shared.getBattery()
+                ActiveLookSdk.shared.enqueueOperation(ActiveLookOperation.GetBattery)
             },
-            OperationSwitch(getString(R.string.operation_display)) {
-                ActiveLookSdk.shared.setDisplay(it)
+            OperationSwitch(getString(R.string.operation_display), true) {
+                ActiveLookSdk.shared.enqueueOperation(ActiveLookOperation.Display(it))
             },
             OperationClick(getString(R.string.operation_clear)) {
-                ActiveLookSdk.shared.clearScreen()
+                ActiveLookSdk.shared.enqueueOperation(ActiveLookOperation.ClearScreen)
+            },
+            OperationSwitch(getString(R.string.operation_led), true) {
+                ActiveLookSdk.shared.enqueueOperation(ActiveLookOperation.SetLed(it))
             }
         )
 
@@ -55,7 +59,11 @@ interface Operation {
 
 class OperationClick(override val name: String, val onPlay: () -> Unit) : Operation
 
-class OperationSwitch(override val name: String, val onPlay: (checked: Boolean) -> Unit) : Operation
+class OperationSwitch(
+    override val name: String,
+    val defaultValue: Boolean,
+    val onPlay: (checked: Boolean) -> Unit
+) : Operation
 
 class OperationListAdapter : ListAdapter<Operation, OperationListAdapter.OperationViewHolder>(ItemCallback()) {
 
@@ -112,6 +120,7 @@ class OperationListAdapter : ListAdapter<Operation, OperationListAdapter.Operati
 
         fun bind(operation: OperationSwitch) {
             itemView.operationSwitchLabel.text = operation.name
+            itemView.operationSwitch.isChecked = operation.defaultValue
             itemView.playOperationSwitchImage.setOnClickListener {
                 val isChecked = itemView.operationSwitch.isChecked
                 operation.onPlay(isChecked)
