@@ -35,6 +35,9 @@ class OperationsActivity : AppCompatActivity() {
             },
             Operation(getString(R.string.operation_battery)) {
                 ActiveLookSdk.shared.getBattery()
+            },
+            Operation(getString(R.string.operation_clear)) {
+                ActiveLookSdk.shared.clearScreen()
             }
         )
 

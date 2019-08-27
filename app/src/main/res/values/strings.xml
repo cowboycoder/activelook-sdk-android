@@ -6,4 +6,5 @@
     <!--  Operations  -->
     <string name="operation_hello">Hello</string>
     <string name="operation_battery">Battery</string>
+    <string name="operation_clear">Clear Screen</string>
 </resources>

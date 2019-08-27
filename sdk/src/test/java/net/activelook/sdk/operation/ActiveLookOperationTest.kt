@@ -31,4 +31,16 @@ class ActiveLookOperationTest {
         assertArrayEquals(expectedList, commands)
     }
 
+    @Test
+    fun clearScreen() {
+        val operation = ActiveLookOperation.ClearScreen
+        val commands = operation.commands
+
+        val expectedList = arrayOf(
+            ActiveLookCommand.Clear
+        )
+
+        assertArrayEquals(expectedList, commands)
+    }
+
 }
