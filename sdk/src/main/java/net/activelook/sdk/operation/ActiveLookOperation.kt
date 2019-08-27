@@ -4,9 +4,9 @@ import android.graphics.Point
 import android.graphics.Rect
 import net.activelook.sdk.command.ActiveLookCommand
 
-internal sealed class ActiveLookOperation {
+sealed class ActiveLookOperation {
 
-    abstract val commands: Array<ActiveLookCommand>
+    internal abstract val commands: Array<ActiveLookCommand>
 
     object Hello: ActiveLookOperation() {
         override val commands: Array<ActiveLookCommand> = arrayOf(
