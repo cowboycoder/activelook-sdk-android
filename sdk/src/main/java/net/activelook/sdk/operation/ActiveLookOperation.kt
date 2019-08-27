@@ -29,9 +29,20 @@ internal sealed class ActiveLookOperation {
     }
 
     object ClearScreen : ActiveLookOperation() {
+
         override val commands: Array<ActiveLookCommand> = arrayOf(
             ActiveLookCommand.Clear
         )
+    }
+
+    class SetLed(on: Boolean) : ActiveLookOperation() {
+        override val commands: Array<ActiveLookCommand> = if (on) {
+            arrayOf(ActiveLookCommand.Led(true))
+        } else {
+            arrayOf(
+                ActiveLookCommand.Led(false)
+            )
+        }
     }
 
     object GetBattery: ActiveLookOperation() {
