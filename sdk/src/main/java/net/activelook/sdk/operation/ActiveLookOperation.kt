@@ -17,6 +17,17 @@ internal sealed class ActiveLookOperation {
         )
     }
 
+    class Display(on: Boolean) : ActiveLookOperation() {
+        override val commands: Array<ActiveLookCommand> = if (on) {
+            arrayOf(ActiveLookCommand.Power(true))
+        } else {
+            arrayOf(
+                ActiveLookCommand.Power(false),
+                ActiveLookCommand.Clear
+            )
+        }
+    }
+
     object GetBattery: ActiveLookOperation() {
         override val commands: Array<ActiveLookCommand> = arrayOf(
             ActiveLookCommand.BatteryLevel
