@@ -9,7 +9,7 @@ internal sealed class ActiveLookCommand: Enqueueable {
     abstract val command: String
 
     // region System
-    class Power(on: Boolean) : ActiveLookCommand() {
+    data class Power(val on: Boolean) : ActiveLookCommand() {
         override val command = if (on) {
             "power on"
         } else {

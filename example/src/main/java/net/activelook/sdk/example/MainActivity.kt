@@ -73,8 +73,10 @@ class MainActivity : AppCompatActivity() {
 
         ActiveLookSdk.shared.connectionListener = object: ActiveLookSdk.ConnectionListener {
             override fun activeLookConnectionEstablished() {
+                ActiveLookSdk.shared.setDisplay(false)
                 ActiveLookSdk.shared.sayHello()
                 ActiveLookSdk.shared.getBattery()
+                ActiveLookSdk.shared.setDisplay(true)
             }
 
             override fun activeLookConnectionTerminated(reason: GattClosedReason) {
