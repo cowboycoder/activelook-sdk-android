@@ -1,14 +1,15 @@
-package net.activelook.sdk
+package net.activelook.sdk.operation
 
 import android.os.Handler
 import android.util.Log
-import net.activelook.sdk.command.CachePoison
-import net.activelook.sdk.operation.ActiveLookOperation
+import net.activelook.sdk.session.GattSession
+import net.activelook.sdk.session.OperationPoison
 import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.Semaphore
 
-// TODO: maybe move this back over to the GattSession?
 internal data class ActiveLookOperationProcessor(private val gattSession: GattSession) {
 
+    private val operationLock = Semaphore(1)
     private var operationQueue = LinkedBlockingQueue<ActiveLookOperation>()
 
     private val executorThread = Thread {
@@ -16,10 +17,11 @@ internal data class ActiveLookOperationProcessor(private val gattSession: GattSe
             while(true) {
                 Thread.sleep(30)
                 val op = operationQueue.take()
+                operationLock.acquire()
                 for (command in op.commands) {
                     gattSession.sendCommand(command)
                 }
-                gattSession.sendCommand(CachePoison)
+                gattSession.sendCommand(OperationPoison(op))
             }
         } catch(e: InterruptedException) {
             Log.d("TEST", "operationQueue dispatcher was interrupted", e)
@@ -27,14 +29,20 @@ internal data class ActiveLookOperationProcessor(private val gattSession: GattSe
     }
 
     private val commandHandler = Handler {
-//        if(it.what == GattSession.MessageCode.COMMAND_SUCCESS) {
-//
-//        }
+        when(it.obj) {
+            is GattSession.CommandResult.Success -> {
+                // TODO: Signal result?
+            }
+            is GattSession.CommandResult.Error -> {
+                // TODO: Signal error
+            }
+        }
+        operationLock.release()
         true
     }
 
     init {
-        gattSession.commandHandler = commandHandler
+        gattSession.commandResultHandler = commandHandler
         executorThread.start()
     }
 

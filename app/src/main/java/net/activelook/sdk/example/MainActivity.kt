@@ -21,10 +21,9 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.list_item_device.*
 import kotlinx.android.synthetic.main.list_item_device.view.*
 import net.activelook.sdk.ActiveLookSdk
-import net.activelook.sdk.GattClosedReason
+import net.activelook.sdk.session.GattClosedReason
 import net.activelook.sdk.util.toGrayscale
 
 class MainActivity : AppCompatActivity() {

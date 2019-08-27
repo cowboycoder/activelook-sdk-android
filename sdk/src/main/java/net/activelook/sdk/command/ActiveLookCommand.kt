@@ -4,7 +4,7 @@ import android.graphics.Point
 import android.graphics.Rect
 import java.nio.charset.Charset
 
-internal sealed class ActiveLookCommand: EnqueueableCommand {
+internal sealed class ActiveLookCommand: Enqueueable {
 
     abstract val command: String
 

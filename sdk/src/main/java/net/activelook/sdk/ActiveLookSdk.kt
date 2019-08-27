@@ -10,7 +10,10 @@ import android.os.Handler
 import android.os.Message
 import androidx.annotation.RequiresPermission
 import net.activelook.sdk.operation.ActiveLookOperation
+import net.activelook.sdk.operation.ActiveLookOperationProcessor
 import net.activelook.sdk.scanner.BluetoothScanner
+import net.activelook.sdk.session.GattClosedReason
+import net.activelook.sdk.session.GattSession
 
 class ActiveLookSdk(private val bleManager: BluetoothManager) {
 
@@ -136,7 +139,8 @@ class ActiveLookSdk(private val bleManager: BluetoothManager) {
         val event = it.getGattSessionEvent() ?: return@Handler false
         when(event) {
             is GattSession.Event.Established -> {
-                operationProcessor = ActiveLookOperationProcessor(event.session)
+                operationProcessor =
+                    ActiveLookOperationProcessor(event.session)
                 connectionListener?.activeLookConnectionEstablished()
             }
             is GattSession.Event.Closed -> {
