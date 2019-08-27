@@ -150,22 +150,7 @@ internal class GattSession(val device: BluetoothDevice, private val sessionHandl
                 BluetoothProfile.STATE_CONNECTED -> {
                     Log.d("TEST", "connected")
                     this.gatt = gatt
-                    when(device.bondState) {
-                        BluetoothDevice.BOND_NONE, BluetoothDevice.BOND_BONDED -> {
-                            val delayWhenBonded: Long = if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) 0 else 1000
-                            object: CountDownTimer(delayWhenBonded, 1000) {
-                                override fun onFinish() {
-                                    gatt.discoverServices()
-                                }
-
-                                override fun onTick(millisUntilFinished: Long) {}
-                            }
-                                .start()
-                        }
-                        BluetoothDevice.BOND_BONDING -> {
-                            Log.d("TEST", "waiting for bonding to complete")
-                        }
-                    }
+                    gatt.discoverServices()
                 }
                 BluetoothProfile.STATE_DISCONNECTED -> {
                     Log.d("TEST", "disconnected")
