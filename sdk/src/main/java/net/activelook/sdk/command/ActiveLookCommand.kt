@@ -29,6 +29,14 @@ internal sealed class ActiveLookCommand: Enqueueable {
         override val command = "clear"
     }
 
+    data class Led(val on: Boolean) : ActiveLookCommand() {
+        override val command = if (on) {
+            "led on"
+        } else {
+            "led off"
+        }
+    }
+
     class Color(level: Int): ActiveLookCommand() {
         override val command = "color $level"
     }
