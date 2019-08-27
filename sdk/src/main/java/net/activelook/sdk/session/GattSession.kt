@@ -1,8 +1,6 @@
 package net.activelook.sdk.session
 
 import android.bluetooth.*
-import android.os.Build
-import android.os.CountDownTimer
 import android.os.Handler
 import android.util.Log
 import androidx.annotation.RequiresPermission
@@ -17,49 +15,53 @@ import java.util.concurrent.Semaphore
 import kotlin.math.ceil
 import kotlin.math.min
 
-sealed class GattClosedReason(val rawValue: Int) {
-
-    object Success: GattClosedReason(BluetoothGatt.GATT_SUCCESS)
-    object DeviceDisconnect: GattClosedReason(0x13)
-    object ConnectionTimeout: GattClosedReason(0x08)
-    object GattError: GattClosedReason(0x85)
-    class Unknown(rawValue: Int): GattClosedReason(rawValue)
-
-    // TODO: add all codes?
-    // https://android.googlesource.com/platform/external/bluetooth/bluedroid/+/5738f83aeb59361a0a2eda2460113f6dc9194271/stack/include/gatt_api.h
-}
-
 // TODO: need handlers to communicate messages for callbacks
 // TODO: ideas -> https://medium.com/@martijn.van.welie/making-android-ble-work-part-3-117d3a8aee23
 // TODO: need to find a solution for concatenating commands with `;`?
 
-internal class EnqueuableByteArray(val data: ByteArray): Enqueueable
-
 internal class GattSession(val device: BluetoothDevice, private val sessionHandler: Handler): BluetoothGattCallback() {
 
-    internal sealed class Event {
-        enum class Code { ESTABLISHED, CLOSED }
+    /**
+     * A [ByteArray] encapsulation that makes it [Enqueueable]
+     */
+    class EnqueueableByteArray(val data: ByteArray): Enqueueable
+
+    /**
+     * Communicates session events to the [sessionHandler]
+     */
+    sealed class Event {
         data class Established(val session: GattSession): Event()
         data class Closed(val session: GattSession, val reason: GattClosedReason): Event()
     }
 
-    internal sealed class CommandResult {
+    /**
+     * Communicates [ActiveLookCommand] results to the [operationResultHandler]
+     */
+    sealed class OperationResult {
         companion object {
             @JvmStatic
-            fun construct(command: ActiveLookCommand?, status: Int?): CommandResult? {
+            fun construct(command: ActiveLookCommand?, status: Int?): OperationResult? {
                 val c = command ?: return null
                 val s = status ?: return null
                 return when(s) {
-                    BluetoothGatt.GATT_SUCCESS -> Success(c)
+                    BluetoothGatt.GATT_SUCCESS -> Success
                     else -> Error(c, s)
                 }
             }
         }
-        data class Success(val command: ActiveLookCommand): CommandResult()
-        data class Error(val command: ActiveLookCommand, val errorStatus: Int): CommandResult()
+
+        object Success: OperationResult()
+        data class Error(val failureCommand: ActiveLookCommand, val errorStatus: Int): OperationResult()
     }
 
-    internal var commandResultHandler: Handler? = null
+    // region Internal Properties
+
+    /**
+     * used to communicate [OperationResult] events on another thread
+     */
+    var operationResultHandler: Handler? = null
+
+    // endregion Internal Properties
 
     // region Private Properties
 
@@ -67,6 +69,7 @@ internal class GattSession(val device: BluetoothDevice, private val sessionHandl
     private var currentCommand: ActiveLookCommand? = null
     private var currentResult: Int? = null
 
+    // Command Processing
     private val commandLock = Semaphore(1)
     private val commandQueue = LinkedBlockingQueue<Enqueueable>()
     private val commandProcessor = Thread {
@@ -79,10 +82,10 @@ internal class GattSession(val device: BluetoothDevice, private val sessionHandl
                     is ActiveLookCommand -> enqueueWriteCommand(next)
                     is NotificationCommand -> setNotify()
                     is OperationPoison -> {
-                        val result = CommandResult.construct(currentCommand, currentResult)
+                        val result = OperationResult.construct(currentCommand, currentResult)
                         if(result != null) {
-                            val resultMessage = commandResultHandler?.obtainMessage(0, result)
-                            commandResultHandler?.sendMessage(resultMessage)
+                            val resultMessage = operationResultHandler?.obtainMessage(0, result)
+                            operationResultHandler?.sendMessage(resultMessage)
                         }
                         currentCommand = null
                         currentResult = null
@@ -95,16 +98,19 @@ internal class GattSession(val device: BluetoothDevice, private val sessionHandl
         }
     }
 
+    // Write Processing
     private val writeLock = Semaphore(1)
-    private val dataQueue = LinkedBlockingQueue<Enqueueable>()
-    private val dataProcessor = Thread {
+    private val writeQueue = LinkedBlockingQueue<Enqueueable>()
+    private val writeProcessor = Thread {
         try {
             while(true) {
                 Thread.sleep(30)
-                val next = dataQueue.take()
+                val next = writeQueue.take()
                 writeLock.acquire()
                 when(next) {
-                    is EnqueuableByteArray -> {
+                    is EnqueueableByteArray -> {
+
+                        // If we receive an error status for one of our command fragments, we ignore the rest
                         if(currentResult != null && currentResult != BluetoothGatt.GATT_SUCCESS) {
                             writeLock.release()
                         } else {
@@ -118,7 +124,7 @@ internal class GattSession(val device: BluetoothDevice, private val sessionHandl
                 }
             }
         } catch (e: InterruptedException) {
-            Log.d("TEST", "dataProcessor interrupted", e)
+            Log.d("TEST", "writeProcessor interrupted", e)
         }
     }
 
@@ -126,20 +132,26 @@ internal class GattSession(val device: BluetoothDevice, private val sessionHandl
 
     init {
         commandProcessor.start()
-        dataProcessor.start()
+        writeProcessor.start()
     }
 
-    // region Public Interface
+    // region Internal Methods
 
+    /**
+     * Send an [Enqueueable] command to the bluetooth device
+     */
     fun sendCommand(command: Enqueueable) {
         commandQueue.add(command)
     }
 
+    /**
+     * Disconnect the session
+     */
     fun disconnect() {
         gatt?.disconnect()
     }
 
-    // endregion Public Interface
+    // endregion Internal Methods
 
     // region BluetoothGattCallback
 
@@ -150,22 +162,7 @@ internal class GattSession(val device: BluetoothDevice, private val sessionHandl
                 BluetoothProfile.STATE_CONNECTED -> {
                     Log.d("TEST", "connected")
                     this.gatt = gatt
-                    when(device.bondState) {
-                        BluetoothDevice.BOND_NONE, BluetoothDevice.BOND_BONDED -> {
-                            val delayWhenBonded: Long = if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) 0 else 1000
-                            object: CountDownTimer(delayWhenBonded, 1000) {
-                                override fun onFinish() {
-                                    gatt.discoverServices()
-                                }
-
-                                override fun onTick(millisUntilFinished: Long) {}
-                            }
-                                .start()
-                        }
-                        BluetoothDevice.BOND_BONDING -> {
-                            Log.d("TEST", "waiting for bonding to complete")
-                        }
-                    }
+                    gatt.discoverServices()
                 }
                 BluetoothProfile.STATE_DISCONNECTED -> {
                     Log.d("TEST", "disconnected")
@@ -197,7 +194,7 @@ internal class GattSession(val device: BluetoothDevice, private val sessionHandl
         }
 
         val event = Event.Established(this)
-        val message = sessionHandler.obtainMessage(Event.Code.ESTABLISHED.ordinal, event)
+        val message = sessionHandler.obtainMessage(0, event)
         sessionHandler.sendMessage(message)
     }
 
@@ -222,22 +219,29 @@ internal class GattSession(val device: BluetoothDevice, private val sessionHandl
     override fun onCharacteristicChanged(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic) {
         val value = characteristic.getStringValue(0)
         Log.d("TEST", "got characteristic notification: $value")
-        writeLock.release()
+        commandLock.release()
     }
 
     // endregion BluetoothGattCallback
 
     // region Private Methods
 
+    /**
+     * When the GattSession is closed we stop our processor threads and send
+     * a message to the sessionHandler
+     */
     private fun cleanup(closedReason: GattClosedReason) {
         this.gatt = null
         commandProcessor.interrupt()
-        dataProcessor.interrupt()
+        writeProcessor.interrupt()
         val event = Event.Closed(this, closedReason)
-        val message = sessionHandler.obtainMessage(Event.Code.CLOSED.ordinal, event)
+        val message = sessionHandler.obtainMessage(0, event)
         sessionHandler.sendMessage(message)
     }
 
+    /**
+     * This writes a byte array to the [Characteristic.RxServer] characteristic
+     */
     private fun write(chunk: ByteArray): Boolean {
         val g = gatt ?: return false
         val service = g.getService(Service.CommandInterface.uuid)
@@ -247,16 +251,25 @@ internal class GattSession(val device: BluetoothDevice, private val sessionHandl
         return g.writeCharacteristic(characteristic)
     }
 
+    /**
+     * This enables a notification on the [Characteristic.TxServer] characteristic
+     */
     private fun setNotify() {
         val service = gatt?.getService(Service.CommandInterface.uuid)
         val characteristic = service?.getCharacteristic(Characteristic.TxServer.uuid)
         if(characteristic == null) {
-            writeLock.release()
+            commandLock.release()
             return
         }
         gatt?.setCharacteristicNotification(characteristic, true)
     }
 
+    /**
+     * This takes an [ActiveLookCommand] and enqueues its entirety in the [writeQueue].
+     * The max byte size to write is 20 as specified in the Microoled documentation
+     *
+     * @param command The [ActiveLookCommand] to enqueue
+     */
     private fun enqueueWriteCommand(command: ActiveLookCommand) {
         currentCommand = command
         val chunkSize = 20
@@ -267,9 +280,9 @@ internal class GattSession(val device: BluetoothDevice, private val sessionHandl
             val length = min(data.size - start, chunkSize)
             val chunk = ByteArray(length)
             System.arraycopy(data, start, chunk, 0, length)
-            dataQueue.add(EnqueuableByteArray(chunk))
+            writeQueue.add(EnqueueableByteArray(chunk))
         }
-        dataQueue.add(CommandPoison(command))
+        writeQueue.add(CommandPoison(command))
     }
 
     // endregion Private Methods

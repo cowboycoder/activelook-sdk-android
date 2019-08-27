@@ -51,6 +51,10 @@ internal sealed class ActiveLookCommand: Enqueueable {
     // endregion Image
 }
 
+/**
+ * This converts a command string to a [ByteArray] for writing
+ * It appends '\u0000' as required by the ActiveLook specification
+ */
 internal fun ActiveLookCommand.data(): ByteArray {
     return (command + "\u0000").toByteArray(Charset.forName("UTF-8"))
 }
