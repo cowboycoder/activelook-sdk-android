@@ -50,6 +50,7 @@ class ActiveLookSdk(private val bleManager: BluetoothManager) {
         scanner?.startScanning()
     }
 
+    @RequiresPermission(Manifest.permission.BLUETOOTH_ADMIN)
     fun stopScanning() {
         scanner?.stopScanning()
         scanner = null
@@ -122,6 +123,11 @@ class ActiveLookSdk(private val bleManager: BluetoothManager) {
         operationProcessor?.enqueueOperation(ActiveLookOperation.GetBattery)
     }
 
+    fun setDisplay(on: Boolean) {
+        currentSession ?: return
+        operationProcessor?.enqueueOperation(ActiveLookOperation.Display(on))
+    }
+
     // endregion Operations
 
     // region Private
@@ -146,7 +152,7 @@ class ActiveLookSdk(private val bleManager: BluetoothManager) {
             is GattSession.Event.Closed -> {
                 connectionListener?.activeLookConnectionTerminated(event.reason)
                 if(event.session == currentSession) {
-                    currentSession == null
+                    currentSession = null
                 }
                 disconnecting.remove(event.session)
             }
