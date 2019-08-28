@@ -10,8 +10,10 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.activity_operations.*
 
-import kotlinx.android.synthetic.main.list_item_operation.view.*
+import kotlinx.android.synthetic.main.list_item_operation_click.view.*
+import kotlinx.android.synthetic.main.list_item_operation_switch.view.*
 import net.activelook.sdk.ActiveLookSdk
+import net.activelook.sdk.operation.ActiveLookOperation
 
 class OperationsActivity : AppCompatActivity() {
 
@@ -30,11 +32,20 @@ class OperationsActivity : AppCompatActivity() {
 
     private fun initOperations() {
         val operations = listOf(
-            Operation(getString(R.string.operation_hello)) {
-                ActiveLookSdk.shared.sayHello()
+            OperationClick(getString(R.string.operation_hello)) {
+                ActiveLookSdk.shared.enqueueOperation(ActiveLookOperation.Hello)
             },
-            Operation(getString(R.string.operation_battery)) {
-                ActiveLookSdk.shared.getBattery()
+            OperationClick(getString(R.string.operation_battery)) {
+                ActiveLookSdk.shared.enqueueOperation(ActiveLookOperation.GetBattery)
+            },
+            OperationSwitch(getString(R.string.operation_display), true) {
+                ActiveLookSdk.shared.enqueueOperation(ActiveLookOperation.Display(it))
+            },
+            OperationClick(getString(R.string.operation_clear)) {
+                ActiveLookSdk.shared.enqueueOperation(ActiveLookOperation.ClearScreen)
+            },
+            OperationSwitch(getString(R.string.operation_led), true) {
+                ActiveLookSdk.shared.enqueueOperation(ActiveLookOperation.SetLed(it))
             }
         )
 
@@ -42,27 +53,80 @@ class OperationsActivity : AppCompatActivity() {
     }
 }
 
-data class Operation(val name: String, val onPlay: () -> Unit)
+interface Operation {
+    val name : String
+}
 
-class OperationListAdapter : ListAdapter<Operation, OperationListAdapter.OperationListViewHolder>(ItemCallback()) {
+class OperationClick(override val name: String, val onPlay: () -> Unit) : Operation
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): OperationListViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.list_item_operation, parent, false)
-        val vh = OperationListViewHolder(view)
-        return vh
+class OperationSwitch(
+    override val name: String,
+    val defaultValue: Boolean,
+    val onPlay: (checked: Boolean) -> Unit
+) : Operation
+
+class OperationListAdapter : ListAdapter<Operation, OperationListAdapter.OperationViewHolder>(ItemCallback()) {
+
+    companion object {
+        private const val TYPE_CLICK = 1
+        private const val TYPE_SWITCH = 2
     }
 
-    override fun onBindViewHolder(holder: OperationListViewHolder, position: Int) {
-        val device = getItem(position)
-        holder.bindDevice(device)
-    }
-
-    class OperationListViewHolder(itemView: View): RecyclerView.ViewHolder(itemView) {
-
-        fun bindDevice(operation: Operation) {
-            itemView.operationLabel.text = operation.name
-            itemView.setOnClickListener { operation.onPlay() }
+    override fun getItemViewType(position: Int): Int {
+        return when (getItem(position)) {
+            is OperationClick -> TYPE_CLICK
+            is OperationSwitch -> TYPE_SWITCH
+            else -> TYPE_CLICK
         }
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): OperationViewHolder {
+        return when (viewType) {
+            TYPE_CLICK -> {
+                val view = LayoutInflater.from(parent.context).inflate(R.layout.list_item_operation_click, parent, false)
+                OperationClickViewHolder(view)
+            }
+            TYPE_SWITCH -> {
+                val view = LayoutInflater.from(parent.context).inflate(R.layout.list_item_operation_switch, parent, false)
+                OperationSwitchViewHolder(view)
+            }
+            else -> {
+                val view = LayoutInflater.from(parent.context).inflate(R.layout.list_item_operation_click, parent, false)
+                OperationClickViewHolder(view)
+            }
+        }
+    }
+
+    override fun onBindViewHolder(holder: OperationViewHolder, position: Int) {
+        val operation = getItem(position)
+        when (holder) {
+            is OperationClickViewHolder -> holder.bind(operation as OperationClick)
+            is OperationSwitchViewHolder -> holder.bind(operation as OperationSwitch)
+        }
+    }
+
+    abstract class OperationViewHolder(itemView: View): RecyclerView.ViewHolder(itemView)
+
+    class OperationClickViewHolder(itemView: View) : OperationViewHolder(itemView) {
+
+        fun bind(operation: OperationClick) {
+            itemView.operationClickLabel.text = operation.name
+            itemView.playOperationClickImage.setOnClickListener { operation.onPlay() }
+        }
+
+    }
+
+    class OperationSwitchViewHolder(itemView: View) : OperationViewHolder(itemView) {
+
+        fun bind(operation: OperationSwitch) {
+            itemView.operationSwitchLabel.text = operation.name
+            itemView.operationSwitch.isChecked = operation.defaultValue
+            itemView.playOperationSwitchImage.setOnClickListener {
+                val isChecked = itemView.operationSwitch.isChecked
+                operation.onPlay(isChecked)
+            }
+        }
+
     }
 
     class ItemCallback: DiffUtil.ItemCallback<Operation>() {

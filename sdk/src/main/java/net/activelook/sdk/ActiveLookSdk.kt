@@ -113,19 +113,9 @@ class ActiveLookSdk(private val bleManager: BluetoothManager) {
 
     // region Operations
 
-    fun sayHello() {
+    fun enqueueOperation(operation: ActiveLookOperation) {
         currentSession ?: return
-        operationProcessor?.enqueueOperation(ActiveLookOperation.Hello)
-    }
-
-    fun getBattery() {
-        currentSession ?: return
-        operationProcessor?.enqueueOperation(ActiveLookOperation.GetBattery)
-    }
-
-    fun setDisplay(on: Boolean) {
-        currentSession ?: return
-        operationProcessor?.enqueueOperation(ActiveLookOperation.Display(on))
+        operationProcessor?.enqueueOperation(operation)
     }
 
     // endregion Operations

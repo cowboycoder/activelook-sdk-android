@@ -4,9 +4,9 @@ import android.graphics.Point
 import android.graphics.Rect
 import net.activelook.sdk.command.ActiveLookCommand
 
-internal sealed class ActiveLookOperation {
+sealed class ActiveLookOperation {
 
-    abstract val commands: Array<ActiveLookCommand>
+    internal abstract val commands: Array<ActiveLookCommand>
 
     object Hello: ActiveLookOperation() {
         override val commands: Array<ActiveLookCommand> = arrayOf(
@@ -24,6 +24,23 @@ internal sealed class ActiveLookOperation {
             arrayOf(
                 ActiveLookCommand.Power(false),
                 ActiveLookCommand.Clear
+            )
+        }
+    }
+
+    object ClearScreen : ActiveLookOperation() {
+
+        override val commands: Array<ActiveLookCommand> = arrayOf(
+            ActiveLookCommand.Clear
+        )
+    }
+
+    class SetLed(on: Boolean) : ActiveLookOperation() {
+        override val commands: Array<ActiveLookCommand> = if (on) {
+            arrayOf(ActiveLookCommand.Led(true))
+        } else {
+            arrayOf(
+                ActiveLookCommand.Led(false)
             )
         }
     }

@@ -1,7 +1,7 @@
 package net.activelook.sdk.operation
 
 import net.activelook.sdk.command.ActiveLookCommand
-import org.junit.Assert.*
+import org.junit.Assert.assertArrayEquals
 import org.junit.Test
 
 class ActiveLookOperationTest {
@@ -26,6 +26,42 @@ class ActiveLookOperationTest {
 
         val expectedList = arrayOf(
             ActiveLookCommand.Power(true)
+        )
+
+        assertArrayEquals(expectedList, commands)
+    }
+
+    @Test
+    fun clearScreen() {
+        val operation = ActiveLookOperation.ClearScreen
+        val commands = operation.commands
+
+        val expectedList = arrayOf(
+            ActiveLookCommand.Clear
+        )
+
+        assertArrayEquals(expectedList, commands)
+    }
+
+    @Test
+    fun setLedOff() {
+        val operation: ActiveLookOperation = ActiveLookOperation.SetLed(false)
+        val commands = operation.commands
+
+        val expectedList = arrayOf(
+            ActiveLookCommand.Led(false)
+        )
+
+        assertArrayEquals(expectedList, commands)
+    }
+
+    @Test
+    fun setLedOn() {
+        val operation: ActiveLookOperation = ActiveLookOperation.SetLed(true)
+        val commands = operation.commands
+
+        val expectedList = arrayOf(
+            ActiveLookCommand.Led(true)
         )
 
         assertArrayEquals(expectedList, commands)
