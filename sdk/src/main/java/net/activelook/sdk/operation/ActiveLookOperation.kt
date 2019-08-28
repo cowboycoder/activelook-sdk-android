@@ -45,6 +45,13 @@ sealed class ActiveLookOperation {
         }
     }
 
+    class SetBrightness(level: Int, autoAdjust: Boolean) : ActiveLookOperation() {
+        override val commands: Array<ActiveLookCommand> = arrayOf(
+            ActiveLookCommand.AmbientLightSensor(autoAdjust),
+            ActiveLookCommand.Luminosity(level)
+        )
+    }
+
     object GetBattery: ActiveLookOperation() {
         override val commands: Array<ActiveLookCommand> = arrayOf(
             ActiveLookCommand.BatteryLevel

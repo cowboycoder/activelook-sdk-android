@@ -37,6 +37,18 @@ internal sealed class ActiveLookCommand: Enqueueable {
         }
     }
 
+    data class Luminosity(val level: Int) : ActiveLookCommand() {
+        override val command = "luma $level"
+    }
+
+    data class AmbientLightSensor(val on: Boolean) : ActiveLookCommand() {
+        override val command = if (on) {
+            "als on"
+        } else {
+            "als off"
+        }
+    }
+
     class Color(level: Int): ActiveLookCommand() {
         override val command = "color $level"
     }

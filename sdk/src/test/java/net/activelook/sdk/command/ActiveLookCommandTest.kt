@@ -35,4 +35,34 @@ class ActiveLookCommandTest {
         assertEquals("led on", command.command)
     }
 
+    @Test
+    fun luminosityMin() {
+        val command = ActiveLookCommand.Luminosity(0)
+        assertEquals("luma 0", command.command)
+    }
+
+    @Test
+    fun luminosityMax() {
+        val command = ActiveLookCommand.Luminosity(15)
+        assertEquals("luma 15", command.command)
+    }
+
+    @Test
+    fun luminosityWrongValue() {
+        val command = ActiveLookCommand.Luminosity(100)
+        assertEquals("luma 100", command.command)
+    }
+
+    @Test
+    fun ambientLightSensorOff() {
+        val command = ActiveLookCommand.AmbientLightSensor(false)
+        assertEquals("als off", command.command)
+    }
+
+    @Test
+    fun ambientLightSensorOn() {
+        val command = ActiveLookCommand.AmbientLightSensor(true)
+        assertEquals("als on", command.command)
+    }
+
 }

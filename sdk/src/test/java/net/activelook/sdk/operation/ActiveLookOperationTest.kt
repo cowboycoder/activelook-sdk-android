@@ -67,4 +67,17 @@ class ActiveLookOperationTest {
         assertArrayEquals(expectedList, commands)
     }
 
+    @Test
+    fun `luminosity at 0 with auto adjust at false`() {
+        val operation: ActiveLookOperation = ActiveLookOperation.SetBrightness(0, false)
+        val commands = operation.commands
+
+        val expectedList = arrayOf(
+            ActiveLookCommand.AmbientLightSensor(false),
+            ActiveLookCommand.Luminosity(0)
+        )
+
+        assertArrayEquals(expectedList, commands)
+    }
+
 }

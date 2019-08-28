@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.activity_operations.*
 
 import kotlinx.android.synthetic.main.list_item_operation_click.view.*
+import kotlinx.android.synthetic.main.list_item_operation_slider.view.*
 import kotlinx.android.synthetic.main.list_item_operation_switch.view.*
 import net.activelook.sdk.ActiveLookSdk
 import net.activelook.sdk.operation.ActiveLookOperation
@@ -46,6 +47,14 @@ class OperationsActivity : AppCompatActivity() {
             },
             OperationSwitch(getString(R.string.operation_led), true) {
                 ActiveLookSdk.shared.enqueueOperation(ActiveLookOperation.SetLed(it))
+            },
+            OperationSlider(getString(R.string.operation_brightness), 0f, 0f, 100f) {
+                ActiveLookSdk.shared.enqueueOperation(
+                    ActiveLookOperation.SetBrightness(
+                        it.toInt(),
+                        false
+                    )
+                )
             }
         )
 
@@ -65,17 +74,27 @@ class OperationSwitch(
     val onPlay: (checked: Boolean) -> Unit
 ) : Operation
 
+class OperationSlider(
+    override val name: String,
+    val defaultValue: Float,
+    val min: Float,
+    val max: Float,
+    val onPlay: (value: Float) -> Unit
+) : Operation
+
 class OperationListAdapter : ListAdapter<Operation, OperationListAdapter.OperationViewHolder>(ItemCallback()) {
 
     companion object {
         private const val TYPE_CLICK = 1
         private const val TYPE_SWITCH = 2
+        private const val TYPE_SLIDER = 3
     }
 
     override fun getItemViewType(position: Int): Int {
         return when (getItem(position)) {
             is OperationClick -> TYPE_CLICK
             is OperationSwitch -> TYPE_SWITCH
+            is OperationSlider -> TYPE_SLIDER
             else -> TYPE_CLICK
         }
     }
@@ -90,6 +109,11 @@ class OperationListAdapter : ListAdapter<Operation, OperationListAdapter.Operati
                 val view = LayoutInflater.from(parent.context).inflate(R.layout.list_item_operation_switch, parent, false)
                 OperationSwitchViewHolder(view)
             }
+            TYPE_SLIDER -> {
+                val view = LayoutInflater.from(parent.context)
+                    .inflate(R.layout.list_item_operation_slider, parent, false)
+                OperationSliderViewHolder(view)
+            }
             else -> {
                 val view = LayoutInflater.from(parent.context).inflate(R.layout.list_item_operation_click, parent, false)
                 OperationClickViewHolder(view)
@@ -102,6 +126,7 @@ class OperationListAdapter : ListAdapter<Operation, OperationListAdapter.Operati
         when (holder) {
             is OperationClickViewHolder -> holder.bind(operation as OperationClick)
             is OperationSwitchViewHolder -> holder.bind(operation as OperationSwitch)
+            is OperationSliderViewHolder -> holder.bind(operation as OperationSlider)
         }
     }
 
@@ -126,7 +151,20 @@ class OperationListAdapter : ListAdapter<Operation, OperationListAdapter.Operati
                 operation.onPlay(isChecked)
             }
         }
+    }
 
+    class OperationSliderViewHolder(itemView: View) : OperationViewHolder(itemView) {
+
+        fun bind(operation: OperationSlider) {
+            itemView.operationSliderLabel.text = operation.name
+            itemView.operationSlider.min = operation.min
+            itemView.operationSlider.max = operation.max
+            itemView.operationSlider.setProgress(operation.defaultValue)
+            itemView.playOperationSliderImage.setOnClickListener {
+                val progress = itemView.operationSlider.progressFloat
+                operation.onPlay(progress)
+            }
+        }
     }
 
     class ItemCallback: DiffUtil.ItemCallback<Operation>() {
