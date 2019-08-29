@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.SeekBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -48,12 +49,9 @@ class OperationsActivity : AppCompatActivity() {
             OperationSwitch(getString(R.string.operation_led), true) {
                 ActiveLookSdk.shared.enqueueOperation(ActiveLookOperation.SetLed(it))
             },
-            OperationSlider(getString(R.string.operation_brightness), 0f, 0f, 100f) {
+            OperationSlider(getString(R.string.operation_brightness), 0, -50, 50) {
                 ActiveLookSdk.shared.enqueueOperation(
-                    ActiveLookOperation.SetBrightness(
-                        it.toInt(),
-                        false
-                    )
+                    ActiveLookOperation.SetBrightness(it, false)
                 )
             }
         )
@@ -76,10 +74,10 @@ class OperationSwitch(
 
 class OperationSlider(
     override val name: String,
-    val defaultValue: Float,
-    val min: Float,
-    val max: Float,
-    val onPlay: (value: Float) -> Unit
+    val defaultValue: Int,
+    val min: Int,
+    val max: Int,
+    val onPlay: (value: Int) -> Unit
 ) : Operation
 
 class OperationListAdapter : ListAdapter<Operation, OperationListAdapter.OperationViewHolder>(ItemCallback()) {
@@ -157,11 +155,30 @@ class OperationListAdapter : ListAdapter<Operation, OperationListAdapter.Operati
 
         fun bind(operation: OperationSlider) {
             itemView.operationSliderLabel.text = operation.name
-            itemView.operationSlider.min = operation.min
-            itemView.operationSlider.max = operation.max
-            itemView.operationSlider.setProgress(operation.defaultValue)
+            itemView.operationSlider.max = operation.max - operation.min
+            itemView.operationSlider.progress = operation.defaultValue - operation.min
+            itemView.valueOperationSliderText.text = operation.defaultValue.toString()
+            itemView.operationSlider.setOnSeekBarChangeListener(object :
+                SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(
+                    seekBar: SeekBar?,
+                    progress: Int,
+                    fromUser: Boolean
+                ) {
+                    itemView.valueOperationSliderText.text = (progress + operation.min).toString()
+                }
+
+                override fun onStartTrackingTouch(seekBar: SeekBar?) {
+
+                }
+
+                override fun onStopTrackingTouch(seekBar: SeekBar?) {
+
+                }
+
+            })
             itemView.playOperationSliderImage.setOnClickListener {
-                val progress = itemView.operationSlider.progressFloat
+                val progress = itemView.operationSlider.progress + operation.min
                 operation.onPlay(progress)
             }
         }

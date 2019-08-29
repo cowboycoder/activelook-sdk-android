@@ -21,7 +21,7 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:text="Name" />
 
-    <com.warkiz.widget.IndicatorSeekBar
+    <SeekBar
         android:id="@+id/operationSlider"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -30,11 +30,10 @@
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/textView"
+        android:max="15"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/operationSliderLabel"
-        tools:isb_max="15"
-        tools:isb_min="0"
+        app:layout_constraintEnd_toStartOf="@+id/valueOperationSliderText"
         tools:isb_progress="15" />
 
     <ImageView
@@ -51,7 +50,7 @@
         app:srcCompat="@drawable/operation_play" />
 
     <TextView
-        android:id="@+id/textView"
+        android:id="@+id/valueOperationSliderText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"

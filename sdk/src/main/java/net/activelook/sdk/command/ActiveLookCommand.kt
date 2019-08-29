@@ -3,6 +3,8 @@ package net.activelook.sdk.command
 import android.graphics.Point
 import android.graphics.Rect
 import java.nio.charset.Charset
+import kotlin.math.max
+import kotlin.math.min
 
 internal sealed class ActiveLookCommand: Enqueueable {
 
@@ -37,8 +39,33 @@ internal sealed class ActiveLookCommand: Enqueueable {
         }
     }
 
-    data class Luminosity(val level: Int) : ActiveLookCommand() {
-        override val command = "luma $level"
+    class Luminosity(level: Int) : ActiveLookCommand() {
+
+        private val minLevel = 0
+        private val maxLevel = 15
+
+        val level = max(min(level, maxLevel), minLevel)
+
+        override val command = "luma ${this.level}"
+
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is Luminosity) return false
+
+            if (level != other.level) return false
+            if (command != other.command) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = minLevel
+            result = 31 * result + maxLevel
+            result = 31 * result + level
+            result = 31 * result + command.hashCode()
+            return result
+        }
     }
 
     data class AmbientLightSensor(val on: Boolean) : ActiveLookCommand() {

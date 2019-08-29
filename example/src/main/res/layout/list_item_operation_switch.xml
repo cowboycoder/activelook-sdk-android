@@ -38,6 +38,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/operation_play"
-        android:background="?android:attr/selectableItemBackground" />
+        android:background="?android:attr/selectableItemBackgroundBorderless" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
