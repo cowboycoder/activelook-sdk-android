@@ -7,9 +7,10 @@ import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.os.Build
 import android.os.Handler
-import android.os.Message
 import androidx.annotation.RequiresPermission
+import net.activelook.sdk.command.ActiveLookCommand
 import net.activelook.sdk.operation.ActiveLookOperation
+import net.activelook.sdk.operation.ActiveLookOperationCallback
 import net.activelook.sdk.operation.ActiveLookOperationProcessor
 import net.activelook.sdk.scanner.BluetoothScanner
 import net.activelook.sdk.session.GattClosedReason
@@ -87,8 +88,6 @@ class ActiveLookSdk(private val bleManager: BluetoothManager) {
 
     var connectionListener: ConnectionListener? = null
 
-    // TODO: we might need to add a manual connection timer to track timeouts if connection hangs...
-
     fun connect(unused: Context, device: BluetoothDevice) {
 
         enqueueDisconnect(device)
@@ -132,22 +131,38 @@ class ActiveLookSdk(private val bleManager: BluetoothManager) {
     // region GattSessionHandler
 
     private var gattSessionHandler = Handler {
-        val event = it.getGattSessionEvent() ?: return@Handler false
-        when(event) {
-            is GattSession.Event.Established -> {
-                operationProcessor =
-                    ActiveLookOperationProcessor(event.session)
-                connectionListener?.activeLookConnectionEstablished()
-            }
-            is GattSession.Event.Closed -> {
-                connectionListener?.activeLookConnectionTerminated(event.reason)
-                if(event.session == currentSession) {
-                    currentSession = null
-                }
-                disconnecting.remove(event.session)
-            }
+        when(val sessionEvent = it.obj) {
+            is GattSession.Event.Established -> onConnectionEstablished(sessionEvent.session)
+            is GattSession.Event.Closed -> onConnectionClosed(sessionEvent.session, sessionEvent.reason)
         }
         true
+    }
+
+    private fun onConnectionEstablished(gattSession: GattSession) {
+
+        operationProcessor = ActiveLookOperationProcessor(
+            gattSession,
+            object: ActiveLookOperationCallback {
+
+                override fun activeLookOperationSuccess(operation: ActiveLookOperation) {
+                    // TODO: signal to client
+                }
+
+                override fun activeLookOperationError(operation: ActiveLookOperation, errorStatus: Int?, failureCommand: ActiveLookCommand) {
+                    // TODO: signal to client
+                }
+            }
+        )
+
+        connectionListener?.activeLookConnectionEstablished()
+    }
+
+    private fun onConnectionClosed(gattSession: GattSession, closedReason: GattClosedReason) {
+        connectionListener?.activeLookConnectionTerminated(closedReason)
+        if(gattSession == currentSession) {
+            currentSession == null
+        }
+        disconnecting.remove(gattSession)
     }
 
     // endregion GattSessionListener
@@ -159,18 +174,4 @@ internal fun BluetoothDevice.connectGattCompat(unused: Context, autoConnect: Boo
     } else {
         connectGatt(unused, autoConnect, callback)
     }
-}
-
-internal fun Message.getGattSessionEvent(): GattSession.Event? {
-    try {
-        when(what) {
-            GattSession.Event.Code.CLOSED.ordinal -> {
-                return obj as GattSession.Event.Closed
-            }
-            GattSession.Event.Code.ESTABLISHED.ordinal -> {
-                return obj as GattSession.Event.Established
-            }
-        }
-    } catch(t: Throwable) {}
-    return null
 }

@@ -7,7 +7,7 @@ import org.junit.Test
 class ActiveLookOperationTest {
 
     @Test
-    fun displayOff() {
+    fun `display off`() {
         val operation = ActiveLookOperation.Display(false)
         val commands = operation.commands
 
@@ -20,7 +20,7 @@ class ActiveLookOperationTest {
     }
 
     @Test
-    fun displayOn() {
+    fun `display on`() {
         val operation = ActiveLookOperation.Display(true)
         val commands = operation.commands
 
@@ -32,7 +32,7 @@ class ActiveLookOperationTest {
     }
 
     @Test
-    fun clearScreen() {
+    fun `clear screen`() {
         val operation = ActiveLookOperation.ClearScreen
         val commands = operation.commands
 
@@ -44,7 +44,7 @@ class ActiveLookOperationTest {
     }
 
     @Test
-    fun setLedOff() {
+    fun `set led off`() {
         val operation: ActiveLookOperation = ActiveLookOperation.SetLed(false)
         val commands = operation.commands
 
@@ -56,7 +56,7 @@ class ActiveLookOperationTest {
     }
 
     @Test
-    fun setLedOn() {
+    fun `set led on`() {
         val operation: ActiveLookOperation = ActiveLookOperation.SetLed(true)
         val commands = operation.commands
 
@@ -67,4 +67,68 @@ class ActiveLookOperationTest {
         assertArrayEquals(expectedList, commands)
     }
 
+    @Test
+    fun `set brightness with luminosity at 0 and auto adjust at false`() {
+        val operation: ActiveLookOperation = ActiveLookOperation.SetBrightness(0, false)
+        val commands = operation.commands
+
+        val expectedList = arrayOf(
+            ActiveLookCommand.AmbientLightSensor(false),
+            ActiveLookCommand.Luminosity(0)
+        )
+
+        assertArrayEquals(expectedList, commands)
+    }
+
+    @Test
+    fun `set brightness with luminosity at 0 and auto adjust at true`() {
+        val operation: ActiveLookOperation = ActiveLookOperation.SetBrightness(0, true)
+        val commands = operation.commands
+
+        val expectedList = arrayOf(
+            ActiveLookCommand.AmbientLightSensor(true),
+            ActiveLookCommand.Luminosity(0)
+        )
+
+        assertArrayEquals(expectedList, commands)
+    }
+
+    @Test
+    fun `set brightness with luminosity at 15 and auto adjust at false`() {
+        val operation: ActiveLookOperation = ActiveLookOperation.SetBrightness(15, false)
+        val commands = operation.commands
+
+        val expectedList = arrayOf(
+            ActiveLookCommand.AmbientLightSensor(false),
+            ActiveLookCommand.Luminosity(15)
+        )
+
+        assertArrayEquals(expectedList, commands)
+    }
+
+    @Test
+    fun `set brightness with luminosity at 15 and auto adjust at true`() {
+        val operation: ActiveLookOperation = ActiveLookOperation.SetBrightness(15, true)
+        val commands = operation.commands
+
+        val expectedList = arrayOf(
+            ActiveLookCommand.AmbientLightSensor(true),
+            ActiveLookCommand.Luminosity(15)
+        )
+
+        assertArrayEquals(expectedList, commands)
+    }
+
+    @Test
+    fun `set brightness with luminosity at 100 and auto adjust at true`() {
+        val operation: ActiveLookOperation = ActiveLookOperation.SetBrightness(100, true)
+        val commands = operation.commands
+
+        val expectedList = arrayOf(
+            ActiveLookCommand.AmbientLightSensor(true),
+            ActiveLookCommand.Luminosity(15)
+        )
+
+        assertArrayEquals(expectedList, commands)
+    }
 }

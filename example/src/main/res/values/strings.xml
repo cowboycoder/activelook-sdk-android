@@ -9,4 +9,5 @@
     <string name="operation_display">Display</string>
     <string name="operation_clear">Clear Screen</string>
     <string name="operation_led">Set LED</string>
+    <string name="operation_brightness">Brightness</string>
 </resources>

@@ -9,7 +9,6 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.activity_operations.*
-
 import kotlinx.android.synthetic.main.list_item_operation_click.view.*
 import kotlinx.android.synthetic.main.list_item_operation_switch.view.*
 import net.activelook.sdk.ActiveLookSdk
@@ -54,7 +53,7 @@ class OperationsActivity : AppCompatActivity() {
 }
 
 interface Operation {
-    val name : String
+    val name: String
 }
 
 class OperationClick(override val name: String, val onPlay: () -> Unit) : Operation
@@ -65,7 +64,8 @@ class OperationSwitch(
     val onPlay: (checked: Boolean) -> Unit
 ) : Operation
 
-class OperationListAdapter : ListAdapter<Operation, OperationListAdapter.OperationViewHolder>(ItemCallback()) {
+class OperationListAdapter :
+    ListAdapter<Operation, OperationListAdapter.OperationViewHolder>(ItemCallback()) {
 
     companion object {
         private const val TYPE_CLICK = 1
@@ -83,15 +83,18 @@ class OperationListAdapter : ListAdapter<Operation, OperationListAdapter.Operati
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): OperationViewHolder {
         return when (viewType) {
             TYPE_CLICK -> {
-                val view = LayoutInflater.from(parent.context).inflate(R.layout.list_item_operation_click, parent, false)
+                val view = LayoutInflater.from(parent.context)
+                    .inflate(R.layout.list_item_operation_click, parent, false)
                 OperationClickViewHolder(view)
             }
             TYPE_SWITCH -> {
-                val view = LayoutInflater.from(parent.context).inflate(R.layout.list_item_operation_switch, parent, false)
+                val view = LayoutInflater.from(parent.context)
+                    .inflate(R.layout.list_item_operation_switch, parent, false)
                 OperationSwitchViewHolder(view)
             }
             else -> {
-                val view = LayoutInflater.from(parent.context).inflate(R.layout.list_item_operation_click, parent, false)
+                val view = LayoutInflater.from(parent.context)
+                    .inflate(R.layout.list_item_operation_click, parent, false)
                 OperationClickViewHolder(view)
             }
         }
@@ -105,7 +108,7 @@ class OperationListAdapter : ListAdapter<Operation, OperationListAdapter.Operati
         }
     }
 
-    abstract class OperationViewHolder(itemView: View): RecyclerView.ViewHolder(itemView)
+    abstract class OperationViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
 
     class OperationClickViewHolder(itemView: View) : OperationViewHolder(itemView) {
 
