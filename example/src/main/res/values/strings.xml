@@ -3,6 +3,8 @@
 
     <string name="title_activity_operations">Operations</string>
 
+    <string name="operation_play">Play the operation</string>
+
     <!--  Operations  -->
     <string name="operation_hello">Hello</string>
     <string name="operation_battery">Battery</string>

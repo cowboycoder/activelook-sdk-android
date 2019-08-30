@@ -7,16 +7,15 @@
     android:orientation="vertical">
 
     <TextView
-        android:id="@+id/operationSliderLabel"
+        android:id="@+id/operationLabel"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
+        android:layout_marginEnd="8dp"
         android:layout_marginBottom="2dp"
         app:layout_constraintBottom_toTopOf="@+id/operationSlider"
-        app:layout_constraintEnd_toStartOf="@+id/playOperationSliderImage"
-        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintEnd_toStartOf="@+id/operationSwitch"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="Name" />
@@ -26,18 +25,18 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="2dp"
+        android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="16dp"
-        app:layout_constraintBottom_toBottomOf="parent"
         android:max="15"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/operationSliderValue"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/operationSliderLabel"
-        app:layout_constraintEnd_toStartOf="@+id/valueOperationSliderText"
+        app:layout_constraintTop_toBottomOf="@+id/operationLabel"
         tools:isb_progress="15" />
 
     <ImageView
-        android:id="@+id/playOperationSliderImage"
+        android:id="@+id/operationPlay"
         android:layout_width="32dp"
         android:layout_height="32dp"
         android:layout_marginTop="16dp"
@@ -47,16 +46,26 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        android:contentDescription="@string/operation_play"
         app:srcCompat="@drawable/operation_play" />
 
     <TextView
-        android:id="@+id/valueOperationSliderText"
+        android:id="@+id/operationSliderValue"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
         app:layout_constraintBottom_toBottomOf="@+id/operationSlider"
-        app:layout_constraintEnd_toStartOf="@+id/playOperationSliderImage"
+        app:layout_constraintEnd_toStartOf="@+id/operationPlay"
         app:layout_constraintTop_toTopOf="@+id/operationSlider"
         tools:text="15" />
+
+    <Switch
+        android:id="@+id/operationSwitch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintBottom_toBottomOf="@+id/operationLabel"
+        app:layout_constraintEnd_toStartOf="@+id/operationPlay"
+        app:layout_constraintTop_toTopOf="@+id/operationLabel" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
