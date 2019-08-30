@@ -4,13 +4,13 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.SeekBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.activity_operations.*
-import kotlinx.android.synthetic.main.list_item_operation_click.view.*
-import kotlinx.android.synthetic.main.list_item_operation_switch.view.*
+import kotlinx.android.synthetic.main.list_item_operation.view.*
 import net.activelook.sdk.ActiveLookSdk
 import net.activelook.sdk.operation.ActiveLookOperation
 
@@ -45,6 +45,20 @@ class OperationsActivity : AppCompatActivity() {
             },
             OperationSwitch(getString(R.string.operation_led), true) {
                 ActiveLookSdk.shared.enqueueOperation(ActiveLookOperation.SetLed(it))
+            },
+            OperationSliderAndSwitch(
+                getString(R.string.operation_brightness),
+                true,
+                0,
+                -50,
+                50
+            ) { progress, isChecked ->
+                ActiveLookSdk.shared.enqueueOperation(
+                    ActiveLookOperation.SetBrightness(
+                        progress,
+                        isChecked
+                    )
+                )
             }
         )
 
@@ -61,78 +75,117 @@ class OperationClick(override val name: String, val onPlay: () -> Unit) : Operat
 class OperationSwitch(
     override val name: String,
     val defaultValue: Boolean,
-    val onPlay: (checked: Boolean) -> Unit
+    val onPlay: (isChecked: Boolean) -> Unit
+) : Operation
+
+class OperationSliderAndSwitch(
+    override val name: String,
+    val defaultIsChecked: Boolean,
+    val defaultProgress: Int,
+    val min: Int,
+    val max: Int,
+    val onPlay: (progress: Int, isChecked: Boolean) -> Unit
 ) : Operation
 
 class OperationListAdapter :
     ListAdapter<Operation, OperationListAdapter.OperationViewHolder>(ItemCallback()) {
 
-    companion object {
-        private const val TYPE_CLICK = 1
-        private const val TYPE_SWITCH = 2
-    }
-
-    override fun getItemViewType(position: Int): Int {
-        return when (getItem(position)) {
-            is OperationClick -> TYPE_CLICK
-            is OperationSwitch -> TYPE_SWITCH
-            else -> TYPE_CLICK
-        }
-    }
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): OperationViewHolder {
-        return when (viewType) {
-            TYPE_CLICK -> {
-                val view = LayoutInflater.from(parent.context)
-                    .inflate(R.layout.list_item_operation_click, parent, false)
-                OperationClickViewHolder(view)
-            }
-            TYPE_SWITCH -> {
-                val view = LayoutInflater.from(parent.context)
-                    .inflate(R.layout.list_item_operation_switch, parent, false)
-                OperationSwitchViewHolder(view)
-            }
-            else -> {
-                val view = LayoutInflater.from(parent.context)
-                    .inflate(R.layout.list_item_operation_click, parent, false)
-                OperationClickViewHolder(view)
-            }
-        }
+        val view = LayoutInflater
+            .from(parent.context)
+            .inflate(R.layout.list_item_operation, parent, false)
+
+        return OperationViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: OperationViewHolder, position: Int) {
         val operation = getItem(position)
-        when (holder) {
-            is OperationClickViewHolder -> holder.bind(operation as OperationClick)
-            is OperationSwitchViewHolder -> holder.bind(operation as OperationSwitch)
-        }
+        holder.bind(operation)
     }
 
-    abstract class OperationViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
+    class OperationViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
-    class OperationClickViewHolder(itemView: View) : OperationViewHolder(itemView) {
+        fun bind(operation: Operation) {
+            itemView.operationLabel.text = operation.name
 
-        fun bind(operation: OperationClick) {
-            itemView.operationClickLabel.text = operation.name
-            itemView.playOperationClickImage.setOnClickListener { operation.onPlay() }
-        }
+            when (operation) {
+                is OperationClick -> {
+                    hideSwitch()
+                    hideSlider()
 
-    }
+                    itemView.operationPlay.setOnClickListener { operation.onPlay() }
+                }
+                is OperationSwitch -> {
+                    showSwitch()
+                    hideSlider()
 
-    class OperationSwitchViewHolder(itemView: View) : OperationViewHolder(itemView) {
+                    itemView.operationSwitch.isChecked = operation.defaultValue
 
-        fun bind(operation: OperationSwitch) {
-            itemView.operationSwitchLabel.text = operation.name
-            itemView.operationSwitch.isChecked = operation.defaultValue
-            itemView.playOperationSwitchImage.setOnClickListener {
-                val isChecked = itemView.operationSwitch.isChecked
-                operation.onPlay(isChecked)
+                    itemView.operationPlay.setOnClickListener {
+                        val isChecked = itemView.operationSwitch.isChecked
+                        operation.onPlay(isChecked)
+                    }
+                }
+                is OperationSliderAndSwitch -> {
+                    showSwitch()
+                    showSlider()
+
+                    itemView.operationSwitch.isChecked = operation.defaultIsChecked
+
+                    itemView.operationSlider.max = operation.max - operation.min
+                    itemView.operationSlider.progress = operation.defaultProgress - operation.min
+                    setSliderValue(itemView.operationSlider.progress, operation.min)
+
+                    itemView.operationSlider.setOnSeekBarChangeListener(
+                        object : SeekBar.OnSeekBarChangeListener {
+                            override fun onProgressChanged(
+                                seekBar: SeekBar?,
+                                progress: Int,
+                                fromUser: Boolean
+                            ) {
+                                setSliderValue(progress, operation.min)
+                            }
+
+                            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+
+                            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+                        }
+                    )
+
+                    itemView.operationPlay.setOnClickListener {
+                        val progress = itemView.operationSlider.progress + operation.min
+                        val isChecked = itemView.operationSwitch.isChecked
+                        operation.onPlay(progress, isChecked)
+                    }
+                }
             }
         }
 
+        private fun hideSwitch() {
+            itemView.operationSwitch.visibility = View.GONE
+        }
+
+        private fun showSwitch() {
+            itemView.operationSwitch.visibility = View.VISIBLE
+        }
+
+        private fun hideSlider() {
+            itemView.operationSlider.visibility = View.GONE
+            itemView.operationSliderValue.visibility = View.GONE
+            itemView.operationSlider.setOnSeekBarChangeListener(null)
+        }
+
+        private fun showSlider() {
+            itemView.operationSlider.visibility = View.VISIBLE
+            itemView.operationSliderValue.visibility = View.VISIBLE
+        }
+
+        private fun setSliderValue(progress: Int, min: Int) {
+            itemView.operationSliderValue.text = (progress + min).toString()
+        }
     }
 
-    class ItemCallback: DiffUtil.ItemCallback<Operation>() {
+    class ItemCallback : DiffUtil.ItemCallback<Operation>() {
 
         override fun areItemsTheSame(oldItem: Operation, newItem: Operation): Boolean {
             return oldItem.name == newItem.name
