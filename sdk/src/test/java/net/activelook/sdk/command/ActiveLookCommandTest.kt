@@ -71,4 +71,37 @@ class ActiveLookCommandTest {
         assertEquals("als on", command.command)
     }
 
+    @Test
+    fun `save layout 10 with no additional command`() {
+        val command =
+            ActiveLookCommand.SaveLayout(10, 0, 0, 303, 255, 15, 0, "3", true, 224, 128, 4, true)
+        assertEquals("savelayout 0x0A00000000012FFF0F00030100E0800401", command.command)
+    }
+
+    @Test
+    fun `save layout 10 with additional bitmap and text`() {
+        val command = ActiveLookCommand.SaveLayout(
+            13,
+            75,
+            100,
+            195,
+            217,
+            15,
+            0,
+            "3",
+            true,
+            173,
+            188,
+            4,
+            false,
+            ActiveLookCommand.FontLayout("1"),
+            ActiveLookCommand.BitmapLayout(4, 75, 100),
+            ActiveLookCommand.TextLayout(163, 143, "KM/H")
+        )
+        assertEquals(
+            "savelayout 0x0D12004B6400C3D90F00030100ADBC040004010004004B00640900A3008F044B4D2F48",
+            command.command
+        )
+    }
+
 }
