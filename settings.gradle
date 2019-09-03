@@ -1,2 +1,2 @@
-include ':example', ':sdk-android'
+include ':example', ':sdk'
 rootProject.name='ActiveLookSdk'
