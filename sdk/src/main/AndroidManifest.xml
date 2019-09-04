@@ -1,2 +1,1 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="net.activelook.sdk" />
+<manifest package="net.activelook.sdk" />

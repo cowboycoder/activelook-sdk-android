@@ -1,7 +1,6 @@
 package net.activelook.sdk.util
 
 import android.graphics.*
-import java.lang.Math
 import kotlin.math.roundToInt
 
 /**
