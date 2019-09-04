@@ -33,7 +33,7 @@ publishing {
                     }
                 }
             }
-            artifact("$buildDir/outputs/aar/awesomelibrary-release.aar")  {
+            artifact("$buildDir/outputs/aar/sdk-${project.version}-release.aar")  {
                 builtBy tasks.getByName("assemble")
             }
 
