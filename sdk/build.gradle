@@ -10,11 +10,11 @@ apply plugin: 'kotlin-android'
 project.group = "net.activelook.sdk"
 project.version = "0.0.1"
 
-project.ext.name = "ActiveLook Android SDK"
+project.ext.name = "activelook-android-sdk"
 project.ext.artifactId = "activelook-android-sdk"
-project.ext.description = ""
+project.ext.description = "The first compact and lightweight system to transform regular sports glasses into a perfect way to view performance information. http://activelook.net/"
 project.ext.url = "https://github.com/ActiveLook/sdk-android"
-project.ext.labels = [""]
+project.ext.labels = ["wearable-devices", "innovation", "display", "bluetooth-low-energy"]
 
 
 android {

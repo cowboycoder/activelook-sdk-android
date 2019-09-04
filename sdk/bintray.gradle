@@ -25,9 +25,9 @@ bintray {
     key = getBintrayKey()
     publications = ['Production']
     pkg {
-        repo = 'maven'
+        repo = 'activelook-android-sdk'
         name = project.ext.name
-        userOrg = user
+        userOrg = 'activelookteam'
         licenses = ['Apache-2.0']
         websiteUrl = project.ext.url
         vcsUrl = project.ext.url + '.git'
@@ -36,7 +36,7 @@ bintray {
         publicDownloadNumbers = false
         publish = false
         version {
-            name = version
+            name = project.version
             released = new Date()
             desc = project.ext.description
             vcsTag = version
