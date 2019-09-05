@@ -1,3 +1,15 @@
 <resources>
     <string name="app_name">ActiveLookSdk</string>
+
+    <string name="title_activity_operations">Operations</string>
+
+    <string name="operation_play">Play the operation</string>
+
+    <!--  Operations  -->
+    <string name="operation_hello">Hello</string>
+    <string name="operation_battery">Battery</string>
+    <string name="operation_display">Display</string>
+    <string name="operation_clear">Clear Screen</string>
+    <string name="operation_led">Set LED</string>
+    <string name="operation_brightness">Brightness</string>
 </resources>

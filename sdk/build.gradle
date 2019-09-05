@@ -1,18 +1,35 @@
+plugins {
+    id "com.jfrog.bintray" version "1.8.4"
+    id 'maven-publish'
+    id 'org.jetbrains.dokka' version '0.9.18'
+}
+
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
+
+project.group = "net.activelook.sdk"
+project.version = "0.0.1"
+
+project.ext.name = "activelook-android-sdk"
+project.ext.artifactId = "activelook-android-sdk"
+project.ext.description = "The first compact and lightweight system to transform regular sports glasses into a perfect way to view performance information. http://activelook.net/"
+project.ext.url = "https://github.com/ActiveLook/sdk-android"
+project.ext.labels = ["wearable-devices", "innovation", "display", "bluetooth-low-energy"]
+
+
 android {
-    compileSdkVersion 28
+    compileSdkVersion 29
 
 
     defaultConfig {
         minSdkVersion 21
-        targetSdkVersion 28
+        targetSdkVersion 29
         versionCode 1
-        versionName "1.0"
+        versionName version
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles 'consumer-rules.pro'
+        setProperty("archivesBaseName", "sdk-$versionName")
     }
 
     buildTypes {
@@ -27,9 +44,11 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation 'androidx.appcompat:appcompat:1.0.2'
-    implementation 'androidx.core:core-ktx:1.0.2'
+    implementation 'androidx.annotation:annotation:1.1.0'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.2.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 }
+
+apply from: './maven.gradle'
+apply from: './bintray.gradle'
