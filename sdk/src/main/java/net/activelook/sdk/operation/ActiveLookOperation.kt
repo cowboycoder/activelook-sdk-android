@@ -3,6 +3,7 @@ package net.activelook.sdk.operation
 import android.graphics.Point
 import android.graphics.Rect
 import net.activelook.sdk.command.ActiveLookCommand
+import net.activelook.sdk.screen.Screen
 
 sealed class ActiveLookOperation {
 
@@ -71,5 +72,14 @@ sealed class ActiveLookOperation {
         override val commands: Array<ActiveLookCommand> = arrayOf(
             ActiveLookCommand.BatteryLevel
         )
+    }
+
+    class AddScreen(val screen: Screen) : ActiveLookOperation() {
+
+        override val commands: Array<ActiveLookCommand>
+            get() {
+                return arrayOf(ActiveLookCommand.SaveLayout(screen.mapToCommand()))
+            }
+
     }
 }

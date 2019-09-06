@@ -121,120 +121,13 @@ internal sealed class ActiveLookCommand {
     // endregion Notifications
     // region Layout
 
-    class SaveLayout(
-        private val id: Int,
-        private val x0: Int, // 2 bytes
-        private val y0: Int,
-        private val x1: Int, // 2 bytes
-        val y1: Int,
-        val foregroundColor: Int,
-        val backgroundColor: Int,
-        val font: String,
-        val textValid: Boolean,
-        val textX0: Int, // 2 bytes
-        val textY0: Int,
-        val textRotation: Int,
-        val textOpacity: Boolean,
-        private vararg val additionalCommands: AdditionalCommand
+    data class SaveLayout(
+        val layoutString: String
     ) : ActiveLookCommand() {
-
-        private val maxAdditionalCommandsSize = 127 - 17
-
-        override val command: String
-            get() {
-                var sizeAdditionalCommands = 0
-                val additionalCommandsToAdd = mutableListOf<AdditionalCommand>()
-
-                for (additionalCommand in additionalCommands) {
-                    if (sizeAdditionalCommands + additionalCommand.size > maxAdditionalCommandsSize) {
-                        break
-                    }
-                    additionalCommandsToAdd.add(additionalCommand)
-                    sizeAdditionalCommands += additionalCommand.size
-                }
-
-                return "savelayout 0x${id.toHex()}${sizeAdditionalCommands.toHex()}" +
-                        "${x0.toHex(4)}${y0.toHex()}${x1.toHex(4)}${y1.toHex()}" +
-                        "${foregroundColor.toHex()}${backgroundColor.toHex()}${font.toInt().toHex()}" +
-                        "${textValid.toHex()}${textX0.toHex(4)}${textY0.toHex()}" +
-                        "${textRotation.toHex()}${textOpacity.toHex()}" +
-                        additionalCommands.joinToString(separator = "") { it.command }
-            }
-
-    }
-
-    interface AdditionalCommand {
-        val id: Int
-        val size: Int
-        val command: String
-    }
-
-    class BitmapLayout(
-        val bitmapId: Int,
-        val x0: Int, // 2 bytes
-        val y0: Int // 2 bytes
-    ) : AdditionalCommand {
-        override val id: Int = 0
-
-        override val command: String
-            get() {
-                return "${id.toHex()}${bitmapId.toHex()}${x0.toHex(4)}${y0.toHex(4)}"
-            }
-
-        override val size: Int = 6
-    }
-
-    class FontLayout(
-        val font: String
-    ) : AdditionalCommand {
-        override val id: Int = 4
-
-        override val command: String
-            get() {
-                return "${id.toHex()}${font.toInt().toHex()}"
-            }
-
-        override val size: Int = 2
-    }
-
-    class TextLayout(
-        val x0: Int, // 2 bytes
-        val y0: Int, // 2 bytes
-        val text: String
-    ) : AdditionalCommand {
-
-        init {
-            val size = command.length
-            print(size)
-        }
-
-        override val id: Int = 9
-
-        override val command: String
-            get() {
-                return "${id.toHex()}${x0.toHex(4)}${y0.toHex(4)}" +
-                        "${text.length.toHex()}${text.toHex()}"
-            }
-
-        override val size: Int = 6 + text.toHex().length / 2
+        override val command: String = "savelayout 0x${layoutString}"
     }
 
     // endregion Layout
-}
-
-internal fun String.toHex() = this.toByteArray().joinToString("") { "%02X".format(it) }
-
-
-internal fun Int.toHex(length: Int = 2): String {
-    return "%0${length}X".format(this)
-}
-
-internal fun Boolean.toHex(): String {
-    return if (this) {
-        "01"
-    } else {
-        "00"
-    }
 }
 
 /**

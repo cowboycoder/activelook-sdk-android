@@ -6,6 +6,7 @@ plugins {
 
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
+apply plugin: 'jacoco-android'
 
 project.group = "net.activelook.sdk"
 project.version = "0.0.1"
@@ -37,6 +38,9 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+        debug {
+            testCoverageEnabled = true
+        }
     }
 
 }
@@ -49,6 +53,12 @@ dependencies {
     androidTestImplementation 'androidx.test:runner:1.2.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 }
+
+jacoco {
+    toolVersion = "0.8.4"
+    reportsDir = file("$buildDir/reports")
+}
+
 
 apply from: './maven.gradle'
 apply from: './bintray.gradle'
