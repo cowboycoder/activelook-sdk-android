@@ -1,6 +1,7 @@
 package net.activelook.sdk.operation
 
 import net.activelook.sdk.command.ActiveLookCommand
+import net.activelook.sdk.screen.Screen
 import org.junit.Assert.assertArrayEquals
 import org.junit.Test
 
@@ -127,6 +128,20 @@ class ActiveLookOperationTest {
         val expectedList = arrayOf(
             ActiveLookCommand.AmbientLightSensor(true),
             ActiveLookCommand.Luminosity(15)
+        )
+
+        assertArrayEquals(expectedList, commands)
+    }
+
+    @Test
+    fun `add screen`() {
+        val screen = Screen.Builder(15)
+            .build()
+        val operation: ActiveLookOperation = ActiveLookOperation.AddScreen(screen)
+        val commands = operation.commands
+
+        val expectedList = arrayOf(
+            ActiveLookCommand.SaveLayout(screen.mapToCommand())
         )
 
         assertArrayEquals(expectedList, commands)
