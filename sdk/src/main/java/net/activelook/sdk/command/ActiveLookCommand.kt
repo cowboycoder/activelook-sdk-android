@@ -6,7 +6,7 @@ import java.nio.charset.Charset
 import kotlin.math.max
 import kotlin.math.min
 
-internal sealed class ActiveLookCommand: Enqueueable {
+internal sealed class ActiveLookCommand {
 
     abstract val command: String
 

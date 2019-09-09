@@ -7,6 +7,7 @@ import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.os.Build
 import android.os.Handler
+import android.util.Log
 import androidx.annotation.RequiresPermission
 import net.activelook.sdk.command.ActiveLookCommand
 import net.activelook.sdk.operation.ActiveLookOperation
@@ -92,7 +93,7 @@ class ActiveLookSdk(private val bleManager: BluetoothManager) {
 
         enqueueDisconnect(device)
 
-        currentSession = GattSession(device, gattSessionHandler)
+        currentSession = GattSession(device, gattSessionHandler, gattNotificationHandler)
         device.connectGattCompat(unused, false, currentSession!!)
     }
 
@@ -135,6 +136,12 @@ class ActiveLookSdk(private val bleManager: BluetoothManager) {
             is GattSession.Event.Established -> onConnectionEstablished(sessionEvent.session)
             is GattSession.Event.Closed -> onConnectionClosed(sessionEvent.session, sessionEvent.reason)
         }
+        true
+    }
+
+    private var gattNotificationHandler = Handler {
+        Log.d("TEST", "${it.what}")
+        // TODO: receive notifications
         true
     }
 

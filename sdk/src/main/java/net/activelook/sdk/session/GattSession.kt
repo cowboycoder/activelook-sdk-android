@@ -6,25 +6,14 @@ import android.util.Log
 import androidx.annotation.RequiresPermission
 import net.activelook.sdk.blemodel.Characteristic
 import net.activelook.sdk.blemodel.Service
-import net.activelook.sdk.command.ActiveLookCommand
-import net.activelook.sdk.command.Enqueueable
-import net.activelook.sdk.command.NotificationCommand
-import net.activelook.sdk.command.data
-import java.util.concurrent.LinkedBlockingQueue
-import java.util.concurrent.Semaphore
-import kotlin.math.ceil
-import kotlin.math.min
+import net.activelook.sdk.command.ActiveLookCommandFragment
+import java.util.concurrent.CountDownLatch
 
 // TODO: need handlers to communicate messages for callbacks
 // TODO: ideas -> https://medium.com/@martijn.van.welie/making-android-ble-work-part-3-117d3a8aee23
 // TODO: need to find a solution for concatenating commands with `;`?
 
-internal class GattSession(val device: BluetoothDevice, private val sessionHandler: Handler): BluetoothGattCallback() {
-
-    /**
-     * A [ByteArray] encapsulation that makes it [Enqueueable]
-     */
-    class EnqueueableByteArray(val data: ByteArray): Enqueueable
+internal class GattSession(val device: BluetoothDevice, private val sessionHandler: Handler, private val notificationHandler: Handler): BluetoothGattCallback() {
 
     /**
      * Communicates session events to the [sessionHandler]
@@ -34,114 +23,25 @@ internal class GattSession(val device: BluetoothDevice, private val sessionHandl
         data class Closed(val session: GattSession, val reason: GattClosedReason): Event()
     }
 
-    /**
-     * Communicates [ActiveLookCommand] results to the [operationResultHandler]
-     */
-    sealed class OperationResult {
-        companion object {
-            @JvmStatic
-            fun construct(command: ActiveLookCommand?, status: Int?): OperationResult? {
-                val c = command ?: return null
-                val s = status ?: return null
-                return when(s) {
-                    BluetoothGatt.GATT_SUCCESS -> Success
-                    else -> Error(c, s)
-                }
-            }
-        }
-
-        object Success: OperationResult()
-        data class Error(val failureCommand: ActiveLookCommand, val errorStatus: Int): OperationResult()
-    }
-
-    // region Internal Properties
-
-    /**
-     * used to communicate [OperationResult] events on another thread
-     */
-    var operationResultHandler: Handler? = null
-
-    // endregion Internal Properties
-
     // region Private Properties
 
     private var gatt: BluetoothGatt? = null
-    private var currentCommand: ActiveLookCommand? = null
-    private var currentResult: Int? = null
-
-    // Command Processing
-    private val commandLock = Semaphore(1)
-    private val commandQueue = LinkedBlockingQueue<Enqueueable>()
-    private val commandProcessor = Thread {
-        try {
-            while(true) {
-                Thread.sleep(30)
-                val next = commandQueue.take()
-                commandLock.acquire()
-                when(next) {
-                    is ActiveLookCommand -> enqueueWriteCommand(next)
-                    is NotificationCommand -> setNotify()
-                    is OperationPoison -> {
-                        val result = OperationResult.construct(currentCommand, currentResult)
-                        if(result != null) {
-                            val resultMessage = operationResultHandler?.obtainMessage(0, result)
-                            operationResultHandler?.sendMessage(resultMessage)
-                        }
-                        currentCommand = null
-                        currentResult = null
-                        commandLock.release()
-                    }
-                }
-            }
-        } catch(e: InterruptedException) {
-            Log.d("TEST", "commandProcessor interrupted", e)
-        }
-    }
-
-    // Write Processing
-    private val writeLock = Semaphore(1)
-    private val writeQueue = LinkedBlockingQueue<Enqueueable>()
-    private val writeProcessor = Thread {
-        try {
-            while(true) {
-                Thread.sleep(30)
-                val next = writeQueue.take()
-                writeLock.acquire()
-                when(next) {
-                    is EnqueueableByteArray -> {
-
-                        // If we receive an error status for one of our command fragments, we ignore the rest
-                        if(currentResult != null && currentResult != BluetoothGatt.GATT_SUCCESS) {
-                            writeLock.release()
-                        } else {
-                            write(next.data)
-                        }
-                    }
-                    is CommandPoison -> {
-                        writeLock.release()
-                        commandLock.release()
-                    }
-                }
-            }
-        } catch (e: InterruptedException) {
-            Log.d("TEST", "writeProcessor interrupted", e)
-        }
-    }
+    private var writeLatch: CountDownLatch? = null
+    private var currentWriteResult: Int? = null
 
     // endregion Private Properties
-
-    init {
-        commandProcessor.start()
-        writeProcessor.start()
-    }
 
     // region Internal Methods
 
     /**
-     * Send an [Enqueueable] command to the bluetooth device
+     * Write an [ActiveLookCommandFragment] to the BLE device
      */
-    fun sendCommand(command: Enqueueable) {
-        commandQueue.add(command)
+    fun writeCommandFragment(fragment: ActiveLookCommandFragment): Int {
+        val l = CountDownLatch(1)
+        write(fragment.data)
+        writeLatch = l
+        l.await()
+        return currentWriteResult ?: -1
     }
 
     /**
@@ -199,27 +99,15 @@ internal class GattSession(val device: BluetoothDevice, private val sessionHandl
     }
 
     override fun onCharacteristicWrite(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic, status: Int) {
-
-        currentResult = status
+        currentWriteResult = status
         Log.d("TEST", "got characteristic write status: ${status == BluetoothGatt.GATT_SUCCESS}")
-
-        // TODO: remove after debugging
-        when(status) {
-            BluetoothGatt.GATT_SUCCESS -> {
-                try {
-                    val value = characteristic.getStringValue(0)
-                    Log.d("TEST", "got characteristic write notification: $value")
-                } catch(t: Throwable) {}
-            }
-        }
-
-        writeLock.release()
+        writeLatch?.countDown()
     }
 
     override fun onCharacteristicChanged(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic) {
         val value = characteristic.getStringValue(0)
         Log.d("TEST", "got characteristic notification: $value")
-        commandLock.release()
+        // TODO: signal notification
     }
 
     // endregion BluetoothGattCallback
@@ -232,8 +120,6 @@ internal class GattSession(val device: BluetoothDevice, private val sessionHandl
      */
     private fun cleanup(closedReason: GattClosedReason) {
         this.gatt = null
-        commandProcessor.interrupt()
-        writeProcessor.interrupt()
         val event = Event.Closed(this, closedReason)
         val message = sessionHandler.obtainMessage(0, event)
         sessionHandler.sendMessage(message)
@@ -256,33 +142,8 @@ internal class GattSession(val device: BluetoothDevice, private val sessionHandl
      */
     private fun setNotify() {
         val service = gatt?.getService(Service.CommandInterface.uuid)
-        val characteristic = service?.getCharacteristic(Characteristic.TxServer.uuid)
-        if(characteristic == null) {
-            commandLock.release()
-            return
-        }
+        val characteristic = service?.getCharacteristic(Characteristic.TxServer.uuid) ?: return
         gatt?.setCharacteristicNotification(characteristic, true)
-    }
-
-    /**
-     * This takes an [ActiveLookCommand] and enqueues its entirety in the [writeQueue].
-     * The max byte size to write is 20 as specified in the Microoled documentation
-     *
-     * @param command The [ActiveLookCommand] to enqueue
-     */
-    private fun enqueueWriteCommand(command: ActiveLookCommand) {
-        currentCommand = command
-        val chunkSize = 20
-        val data = command.data()
-        val numOfChunks = ceil(data.size.toDouble() / chunkSize).toInt()
-        for(i in 0 until numOfChunks) {
-            val start = i * chunkSize
-            val length = min(data.size - start, chunkSize)
-            val chunk = ByteArray(length)
-            System.arraycopy(data, start, chunk, 0, length)
-            writeQueue.add(EnqueueableByteArray(chunk))
-        }
-        writeQueue.add(CommandPoison(command))
     }
 
     // endregion Private Methods
