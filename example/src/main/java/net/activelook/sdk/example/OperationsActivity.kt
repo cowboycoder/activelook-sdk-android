@@ -13,6 +13,8 @@ import kotlinx.android.synthetic.main.activity_operations.*
 import kotlinx.android.synthetic.main.list_item_operation.view.*
 import net.activelook.sdk.ActiveLookSdk
 import net.activelook.sdk.operation.ActiveLookOperation
+import net.activelook.sdk.screen.Screen
+import net.activelook.sdk.screen.TextWidget
 
 class OperationsActivity : AppCompatActivity() {
 
@@ -30,6 +32,12 @@ class OperationsActivity : AppCompatActivity() {
     }
 
     private fun initOperations() {
+        val screen = Screen.Builder(10)
+            .setPadding(0, 0, 0, 0)
+            .addWidget(TextWidget(150, 150, "Hello!"))
+            .build()
+
+
         val operations = listOf(
             OperationClick(getString(R.string.operation_hello)) {
                 ActiveLookSdk.shared.enqueueOperation(ActiveLookOperation.Hello)
@@ -59,6 +67,15 @@ class OperationsActivity : AppCompatActivity() {
                         isChecked
                     )
                 )
+            },
+            OperationClick("Save screen") {
+                ActiveLookSdk.shared.enqueueOperation(ActiveLookOperation.AddScreen(screen))
+            },
+            OperationClick("Delete screen") {
+                ActiveLookSdk.shared.enqueueOperation(ActiveLookOperation.DeleteScreen(screen.id))
+            },
+            OperationClick("Display screen") {
+                ActiveLookSdk.shared.enqueueOperation(ActiveLookOperation.DisplayScreen(screen.id))
             }
         )
 
