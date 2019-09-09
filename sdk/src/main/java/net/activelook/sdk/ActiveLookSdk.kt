@@ -10,6 +10,7 @@ import android.os.Handler
 import android.util.Log
 import androidx.annotation.RequiresPermission
 import net.activelook.sdk.command.ActiveLookCommand
+import net.activelook.sdk.notification.ActiveLookNotification
 import net.activelook.sdk.operation.ActiveLookOperation
 import net.activelook.sdk.operation.ActiveLookOperationCallback
 import net.activelook.sdk.operation.ActiveLookOperationProcessor
@@ -140,8 +141,13 @@ class ActiveLookSdk(private val bleManager: BluetoothManager) {
     }
 
     private var gattNotificationHandler = Handler {
-        Log.d("TEST", "${it.what}")
-        // TODO: receive notifications
+        val notif = (it.obj as? GattSession.Notification) ?: return@Handler false
+        when(notif) {
+            is GattSession.Notification.BatteryLevel -> {
+                Log.d("TEST", "got BatteryLevel: ${notif.percentage}")
+                // TODO: signal to client with notif.percentage
+            }
+        }
         true
     }
 

@@ -7,6 +7,7 @@ import androidx.annotation.RequiresPermission
 import net.activelook.sdk.blemodel.Characteristic
 import net.activelook.sdk.blemodel.Service
 import net.activelook.sdk.command.ActiveLookCommandFragment
+import net.activelook.sdk.notification.ActiveLookNotification
 import java.util.concurrent.CountDownLatch
 
 // TODO: need handlers to communicate messages for callbacks
@@ -21,6 +22,11 @@ internal class GattSession(val device: BluetoothDevice, private val sessionHandl
     sealed class Event {
         data class Established(val session: GattSession): Event()
         data class Closed(val session: GattSession, val reason: GattClosedReason): Event()
+    }
+
+    sealed class Notification {
+        data class BatteryLevel(val percentage: String): Notification()
+        data class TxServer(val text: String): Notification()
     }
 
     // region Private Properties
@@ -60,12 +66,10 @@ internal class GattSession(val device: BluetoothDevice, private val sessionHandl
         if(status == BluetoothGatt.GATT_SUCCESS) {
             when (newState) {
                 BluetoothProfile.STATE_CONNECTED -> {
-                    Log.d("TEST", "connected")
                     this.gatt = gatt
                     gatt.discoverServices()
                 }
                 BluetoothProfile.STATE_DISCONNECTED -> {
-                    Log.d("TEST", "disconnected")
                     gatt.close()
                     cleanup(GattClosedReason.Success)
                 }
@@ -73,7 +77,6 @@ internal class GattSession(val device: BluetoothDevice, private val sessionHandl
                 BluetoothProfile.STATE_DISCONNECTING -> {}
             }
         } else {
-            Log.d("TEST", "TODO: display error -> $status")
             gatt.close()
             val closedReason: GattClosedReason = when(status) {
                 GattClosedReason.ConnectionTimeout.rawValue -> GattClosedReason.ConnectionTimeout
@@ -88,7 +91,6 @@ internal class GattSession(val device: BluetoothDevice, private val sessionHandl
     override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
 
         if(status != BluetoothGatt.GATT_SUCCESS) {
-            Log.d("TEST", "Service discovery failed")
             disconnect()
             return
         }
@@ -96,18 +98,31 @@ internal class GattSession(val device: BluetoothDevice, private val sessionHandl
         val event = Event.Established(this)
         val message = sessionHandler.obtainMessage(0, event)
         sessionHandler.sendMessage(message)
+
+        setNotify(ActiveLookNotification.TxServer)
+        setNotify(ActiveLookNotification.BatteryLevel)
     }
 
     override fun onCharacteristicWrite(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic, status: Int) {
         currentWriteResult = status
-        Log.d("TEST", "got characteristic write status: ${status == BluetoothGatt.GATT_SUCCESS}")
         writeLatch?.countDown()
     }
 
     override fun onCharacteristicChanged(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic) {
         val value = characteristic.getStringValue(0)
-        Log.d("TEST", "got characteristic notification: $value")
-        // TODO: signal notification
+        when(characteristic.uuid) {
+            Characteristic.BatteryLevel.uuid -> {
+                val batteryLevel = Notification.BatteryLevel(value)
+                val message = notificationHandler.obtainMessage(0, batteryLevel)
+                notificationHandler.sendMessage(message)
+            }
+            Characteristic.TxServer.uuid -> {
+                val sentText = Notification.TxServer(value)
+                val message = notificationHandler.obtainMessage(0, sentText)
+                notificationHandler.sendMessage(message)
+            }
+        }
+
     }
 
     // endregion BluetoothGattCallback
@@ -140,9 +155,9 @@ internal class GattSession(val device: BluetoothDevice, private val sessionHandl
     /**
      * This enables a notification on the [Characteristic.TxServer] characteristic
      */
-    private fun setNotify() {
-        val service = gatt?.getService(Service.CommandInterface.uuid)
-        val characteristic = service?.getCharacteristic(Characteristic.TxServer.uuid) ?: return
+    private fun setNotify(notification: ActiveLookNotification) {
+        val service = gatt?.getService(notification.service.uuid)
+        val characteristic = service?.getCharacteristic(notification.characteristic.uuid) ?: return
         gatt?.setCharacteristicNotification(characteristic, true)
     }
 
