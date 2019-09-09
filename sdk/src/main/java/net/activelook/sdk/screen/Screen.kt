@@ -27,6 +27,13 @@ class Screen private constructor(
 
         const val HEIGHT = 256
         const val MAX_HEIGHT = HEIGHT - 1
+
+        internal const val ID_MIN = 10
+        internal const val ID_MAX = 59
+        internal const val BACKGROUND_MIN = 0
+        internal const val BACKGROUND_MAX = 15
+        internal const val FOREGROUND_MIN = 0
+        internal const val FOREGROUND_MAX = 15
     }
 
     class Builder private constructor() {
@@ -46,15 +53,6 @@ class Screen private constructor(
         private var textOpacity: Boolean = true
 
         private val widgets: MutableList<Widget> = mutableListOf()
-
-        companion object {
-            private const val ID_MIN = 10
-            private const val ID_MAX = 59
-            private const val BACKGROUND_MIN = 0
-            private const val BACKGROUND_MAX = 15
-            private const val FOREGROUND_MIN = 0
-            private const val FOREGROUND_MAX = 15
-        }
 
         constructor(id: Int) : this() {
             this.id = max(min(id, ID_MAX), ID_MIN)

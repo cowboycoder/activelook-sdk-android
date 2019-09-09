@@ -127,6 +127,16 @@ internal sealed class ActiveLookCommand {
         override val command: String = "savelayout 0x${layoutString}"
     }
 
+    data class EraseLayout(
+        val layoutId: Int
+    ) : ActiveLookCommand() {
+        override val command: String = "eraselayout $layoutId"
+    }
+
+    data class DisplayLayout(val layoutId: Int) : ActiveLookCommand() {
+        override val command: String = "layout $layoutId Hi"
+    }
+
     // endregion Layout
 }
 

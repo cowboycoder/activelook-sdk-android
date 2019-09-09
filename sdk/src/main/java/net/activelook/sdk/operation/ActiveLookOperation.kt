@@ -74,12 +74,43 @@ sealed class ActiveLookOperation {
         )
     }
 
-    class AddScreen(val screen: Screen) : ActiveLookOperation() {
+    class AddScreen(screen: Screen) : ActiveLookOperation() {
+
+        override val commands: Array<ActiveLookCommand> = arrayOf(
+            ActiveLookCommand.SaveLayout(screen.mapToCommand())
+        )
+    }
+
+    class DeleteScreen(screenId: Int) : ActiveLookOperation() {
+
+        override val commands: Array<ActiveLookCommand> = arrayOf(
+            ActiveLookCommand.EraseLayout(screenId)
+        )
+    }
+
+    class DeleteAllScreens : ActiveLookOperation() {
 
         override val commands: Array<ActiveLookCommand>
             get() {
-                return arrayOf(ActiveLookCommand.SaveLayout(screen.mapToCommand()))
+                return IntRange(Screen.ID_MIN, Screen.ID_MAX)
+                    .map {
+                        ActiveLookCommand.EraseLayout(it)
+                    }
+                    .toTypedArray()
             }
 
+        override fun equals(other: Any?): Boolean {
+            return this === other
+        }
+
+        override fun hashCode(): Int {
+            return System.identityHashCode(this)
+        }
+    }
+
+    class DisplayScreen(screenId: Int) : ActiveLookOperation() {
+        override val commands: Array<ActiveLookCommand> = arrayOf(
+            ActiveLookCommand.DisplayLayout(screenId)
+        )
     }
 }
