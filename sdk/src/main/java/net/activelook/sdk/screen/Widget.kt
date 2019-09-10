@@ -11,3 +11,20 @@ abstract class Widget {
     }
 
 }
+
+interface HasPosition {
+    val x: Int
+    val y: Int
+
+    var paddingLeft: Int
+    var paddingTop: Int
+    var paddingRight: Int
+    var paddingBottom: Int
+
+    fun setPadding(
+        left: Int = paddingLeft,
+        top: Int = paddingTop,
+        right: Int = paddingRight,
+        bottom: Int = paddingBottom
+    )
+}

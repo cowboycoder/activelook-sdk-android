@@ -33,8 +33,8 @@ class OperationsActivity : AppCompatActivity() {
 
     private fun initOperations() {
         val screen = Screen.Builder(10)
-            .setPadding(0, 0, 0, 0)
-            .addWidget(TextWidget(150, 150, "Hello!"))
+            .setPadding(0, 50, 0, 0)
+            .addWidget(TextWidget(50, 50, "Hello!"))
             .build()
 
 
