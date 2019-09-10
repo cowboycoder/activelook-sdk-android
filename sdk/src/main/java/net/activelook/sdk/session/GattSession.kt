@@ -5,11 +5,10 @@ import android.os.Handler
 import android.util.Log
 import androidx.annotation.RequiresPermission
 import net.activelook.sdk.blemodel.Characteristic
+import net.activelook.sdk.blemodel.Descriptor
 import net.activelook.sdk.blemodel.Service
 import net.activelook.sdk.command.ActiveLookCommand
 import net.activelook.sdk.command.ActiveLookCommandFragment
-import net.activelook.sdk.notification.ActiveLookNotification
-import java.util.*
 import java.util.concurrent.CountDownLatch
 
 // TODO: need handlers to communicate messages for callbacks
@@ -27,15 +26,15 @@ internal class GattSession(val device: BluetoothDevice, private val sessionHandl
     }
 
     sealed class Notification {
-        data class BatteryLevel(val percentage: String): Notification()
+        data class BatteryLevel(val percentage: Int): Notification()
         data class TxServer(val text: String): Notification()
     }
 
     // region Private Properties
 
     private var gatt: BluetoothGatt? = null
-    private var writeLatch: CountDownLatch? = null
-    private var currentWriteResult: Int? = null
+    private var latch: CountDownLatch? = null
+    private var currentResult: Int? = null
 
     // endregion Private Properties
 
@@ -44,13 +43,24 @@ internal class GattSession(val device: BluetoothDevice, private val sessionHandl
     /**
      * Write an [ActiveLookCommandFragment] to the BLE device
      */
-    @Synchronized
+//    @Synchronized
     fun writeCommandFragment(fragment: ActiveLookCommandFragment): Int {
         val l = CountDownLatch(1)
-        write(fragment.data)
-        writeLatch = l
+        val success = write(fragment.data)
+        if(!success) return -1
+        latch = l
         l.await()
-        return currentWriteResult ?: -1
+        return currentResult ?: -1
+    }
+
+//    @Synchronized
+    fun notifyCommand(command: ActiveLookCommand.Notify): Int {
+        val l = CountDownLatch(1)
+        val success = setNotify(command)
+        if(!success) return -1
+        latch = l
+        l.await()
+        return currentResult ?: -1
     }
 
     /**
@@ -102,30 +112,44 @@ internal class GattSession(val device: BluetoothDevice, private val sessionHandl
         val message = sessionHandler.obtainMessage(0, event)
         sessionHandler.sendMessage(message)
 
-        setNotify(ActiveLookNotification.TxServer)
-        setNotify(ActiveLookNotification.BatteryLevel)
+        for(serv in gatt.services) {
+            if(serv.uuid == Service.Battery.uuid) {
+                for (ch in serv.characteristics) {
+                    if(ch.uuid == Characteristic.BatteryLevel.uuid) {
+                        for(desc in ch.descriptors) {
+                            Log.e("TEST", "found battery descriptor: ${desc.uuid}")
+                        }
+                    }
+                }
+            }
+        }
     }
 
     override fun onCharacteristicWrite(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic, status: Int) {
-        currentWriteResult = status
-        writeLatch?.countDown()
+        currentResult = status
+        latch?.countDown()
     }
 
     override fun onCharacteristicChanged(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic) {
-        val value = characteristic.getStringValue(0)
         when(characteristic.uuid) {
             Characteristic.BatteryLevel.uuid -> {
+                val value = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0)
                 val batteryLevel = Notification.BatteryLevel(value)
                 val message = notificationHandler.obtainMessage(0, batteryLevel)
                 notificationHandler.sendMessage(message)
             }
             Characteristic.TxServer.uuid -> {
+                val value = characteristic.getStringValue(0)
                 val sentText = Notification.TxServer(value)
                 val message = notificationHandler.obtainMessage(0, sentText)
                 notificationHandler.sendMessage(message)
             }
         }
+    }
 
+    override fun onDescriptorWrite(gatt: BluetoothGatt?, descriptor: BluetoothGattDescriptor?, status: Int) {
+        currentResult = status
+        latch?.countDown()
     }
 
     // endregion BluetoothGattCallback
@@ -158,10 +182,14 @@ internal class GattSession(val device: BluetoothDevice, private val sessionHandl
     /**
      * This enables a notification on the [Characteristic.TxServer] characteristic
      */
-    private fun setNotify(notification: ActiveLookNotification) {
-        val service = gatt?.getService(notification.service.uuid)
-        val characteristic = service?.getCharacteristic(notification.characteristic.uuid) ?: return
-        gatt?.setCharacteristicNotification(characteristic, true)
+    private fun setNotify(notification: ActiveLookCommand.Notify): Boolean {
+        val g = gatt ?: return false
+        val service = g.getService(notification.service.uuid)
+        val characteristic = service.getCharacteristic(notification.characteristic.uuid)
+        val descriptor = characteristic.getDescriptor(Descriptor.ClientCharacteristicConfiguration.uuid)
+        g.setCharacteristicNotification(characteristic, true)
+        descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+        return g.writeDescriptor(descriptor)
     }
 
     // endregion Private Methods

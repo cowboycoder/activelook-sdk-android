@@ -2,6 +2,8 @@ package net.activelook.sdk.command
 
 import android.graphics.Point
 import android.graphics.Rect
+import net.activelook.sdk.blemodel.Characteristic
+import net.activelook.sdk.blemodel.Service
 import java.nio.charset.Charset
 import kotlin.math.max
 import kotlin.math.min
@@ -104,6 +106,19 @@ internal sealed class ActiveLookCommand {
     // region Image
     // TODO:
     // endregion Image
+
+    // region Notifications
+    sealed class Notify(val service: Service, val characteristic: Characteristic): ActiveLookCommand() {
+
+        object BatteryLevel: Notify(Service.Battery, Characteristic.BatteryLevel) {
+            override val command = ""
+        }
+
+        object TxServer: Notify(Service.CommandInterface, Characteristic.TxServer) {
+            override val command = ""
+        }
+    }
+    // endregion Notifications
 }
 
 /**
