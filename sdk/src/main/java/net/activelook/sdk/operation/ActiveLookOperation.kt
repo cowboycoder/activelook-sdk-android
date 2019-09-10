@@ -8,6 +8,21 @@ sealed class ActiveLookOperation {
 
     internal abstract val commands: Array<ActiveLookCommand>
 
+    sealed class Notify: ActiveLookOperation() {
+
+        object BatteryLevel: Notify() {
+            override val commands: Array<ActiveLookCommand> = arrayOf(
+                ActiveLookCommand.Notify.BatteryLevel
+            )
+        }
+
+        object TxServer: Notify() {
+            override val commands: Array<ActiveLookCommand> = arrayOf(
+                ActiveLookCommand.Notify.TxServer
+            )
+        }
+    }
+
     object Hello: ActiveLookOperation() {
         override val commands: Array<ActiveLookCommand> = arrayOf(
             ActiveLookCommand.Clear,

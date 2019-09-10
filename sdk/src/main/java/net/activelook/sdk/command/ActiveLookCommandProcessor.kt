@@ -18,6 +18,18 @@ internal data class ActiveLookCommandProcessor(private val gattSession: GattSess
      */
     @WorkerThread
     fun processCommand(command: ActiveLookCommand): CommandResult {
+        return when(command) {
+            is ActiveLookCommand.Notify -> notifyCommand(command)
+            else -> writeCommand(command)
+        }
+    }
+
+    private fun notifyCommand(command: ActiveLookCommand.Notify): CommandResult {
+        val result = gattSession.notifyCommand(command)
+        return CommandResult(result, null)
+    }
+
+    private fun writeCommand(command: ActiveLookCommand): CommandResult {
         val chunkSize = 20
         val data = command.data()
         val numOfChunks = ceil(data.size.toDouble() / chunkSize).toInt()

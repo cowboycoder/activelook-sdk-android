@@ -10,7 +10,6 @@ import android.os.Handler
 import android.util.Log
 import androidx.annotation.RequiresPermission
 import net.activelook.sdk.command.ActiveLookCommand
-import net.activelook.sdk.notification.ActiveLookNotification
 import net.activelook.sdk.operation.ActiveLookOperation
 import net.activelook.sdk.operation.ActiveLookOperationCallback
 import net.activelook.sdk.operation.ActiveLookOperationProcessor
@@ -166,6 +165,9 @@ class ActiveLookSdk(private val bleManager: BluetoothManager) {
                 }
             }
         )
+
+        operationProcessor?.enqueueOperation(ActiveLookOperation.Notify.TxServer)
+        operationProcessor?.enqueueOperation(ActiveLookOperation.Notify.BatteryLevel)
 
         connectionListener?.activeLookConnectionEstablished()
     }
