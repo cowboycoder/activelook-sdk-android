@@ -1,17 +1,42 @@
 package net.activelook.sdk.screen
 
-import android.graphics.Color as AndroidColor
-
 class Color(colorHex: String) {
     val r: Int
     val g: Int
     val b: Int
 
+    companion object {
+        fun parseColor(colorString: String): Int {
+            if (colorString[0] == '#') {
+                // Use a long to avoid rollovers on #ffXXXXXX
+                var color = colorString.substring(1).toLong(16)
+                if (colorString.length == 7) {
+                    // Set the alpha value
+                    color = color or 0x00000000ff000000
+                } else require(colorString.length == 9) { "Unknown color" }
+                return color.toInt()
+            }
+            throw IllegalArgumentException("Unknown color")
+        }
+
+        fun getRed(color: Int): Int {
+            return (color shl 16) and 0xFF
+        }
+
+        fun getGreen(color: Int): Int {
+            return (color shl 8) and 0xFF
+        }
+
+        fun getBlue(color: Int): Int {
+            return color and 0xFF
+        }
+    }
+
     init {
-        val color = AndroidColor.parseColor(colorHex)
-        r = AndroidColor.red(color)
-        g = AndroidColor.green(color)
-        b = AndroidColor.blue(color)
+        val color = parseColor(colorHex)
+        r = getRed(color)
+        g = getGreen(color)
+        b = getBlue(color)
     }
 
     fun getGrayscale(): Int {
