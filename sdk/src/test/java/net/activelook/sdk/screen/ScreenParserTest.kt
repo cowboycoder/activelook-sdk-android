@@ -1,18 +1,13 @@
-package net.activelook.sdk
+package net.activelook.sdk.screen
 
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import net.activelook.sdk.exception.JsonInvalidException
 import net.activelook.sdk.exception.JsonVersionInvalidException
-import net.activelook.sdk.screen.Color
 import net.activelook.sdk.screen.Screen
-import net.activelook.sdk.screen.TextWidget
 import org.hamcrest.CoreMatchers.`is`
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThat
 import org.junit.Test
-import org.junit.runner.RunWith
 
-@RunWith(AndroidJUnit4::class)
 class ScreenParserTest {
 
     @Test
