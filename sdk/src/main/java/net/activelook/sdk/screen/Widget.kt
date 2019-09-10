@@ -1,6 +1,6 @@
 package net.activelook.sdk.screen
 
-abstract class Widget(val type: String) {
+abstract class Widget {
 
     internal abstract val id: Int
 

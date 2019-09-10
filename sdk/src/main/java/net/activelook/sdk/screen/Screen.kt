@@ -55,6 +55,39 @@ class Screen private constructor(
         private val widgets: MutableList<Widget> = mutableListOf()
 
         constructor(id: Int) : this() {
+            setId(id)
+        }
+
+        constructor(rawJsonContent: String) : this() {
+            val builder = ScreenParser.parse(rawJsonContent)
+            if (builder != null) {
+                copy(builder)
+            }
+        }
+
+        fun copy(builder: Builder): Builder {
+            setId(builder.id)
+            setPadding(
+                builder.paddingLeft,
+                builder.paddingTop,
+                builder.paddingRight,
+                builder.paddingBottom
+            )
+            setBackgroundColor(builder.background)
+            setForegroundColor(builder.foreground)
+            setFont(builder.font)
+            setText(builder.textPosition, builder.textRotation, builder.textOpacity)
+
+            for (widget in builder.widgets) {
+                if (!this.widgets.contains(widget)) {
+                    addWidget(widget)
+                }
+            }
+
+            return this
+        }
+
+        private fun setId(id: Int) {
             this.id = max(min(id, ID_MAX), ID_MIN)
         }
 
