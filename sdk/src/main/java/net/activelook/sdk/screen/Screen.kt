@@ -34,6 +34,8 @@ class Screen private constructor(
         internal const val BACKGROUND_MAX = 15
         internal const val FOREGROUND_MIN = 0
         internal const val FOREGROUND_MAX = 15
+
+        internal const val SIZE_ADDITIONAL_COMMANDS_MAX = 127 - 17
     }
 
     class Builder private constructor() {
@@ -60,9 +62,7 @@ class Screen private constructor(
 
         constructor(rawJsonContent: String) : this() {
             val builder = ScreenParser.parse(rawJsonContent)
-            if (builder != null) {
-                copy(builder)
-            }
+            copy(builder)
         }
 
         fun copy(builder: Builder): Builder {
@@ -181,13 +181,12 @@ class Screen private constructor(
         val textValid = true
         val textRotation = textOrientation.value
 
-        val maxAdditionalCommandsSize = 127 - 17
+
 
         var sizeAdditionalCommands = 0
         val additionalCommandsToAdd = mutableListOf<Widget>()
-
         for (additionalCommand in widgets) {
-            if (sizeAdditionalCommands + additionalCommand.getCommandSize() > maxAdditionalCommandsSize) {
+            if (sizeAdditionalCommands + additionalCommand.getCommandSize() > SIZE_ADDITIONAL_COMMANDS_MAX) {
                 break
             }
             additionalCommandsToAdd.add(additionalCommand)

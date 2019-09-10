@@ -75,7 +75,12 @@ class OperationsActivity : AppCompatActivity() {
                 ActiveLookSdk.shared.enqueueOperation(ActiveLookOperation.DeleteScreen(screen.id))
             },
             OperationClick("Display screen") {
-                ActiveLookSdk.shared.enqueueOperation(ActiveLookOperation.DisplayScreen(screen.id))
+                ActiveLookSdk.shared.enqueueOperation(
+                    ActiveLookOperation.DisplayScreen(
+                        screen.id,
+                        "Hi"
+                    )
+                )
             }
         )
 

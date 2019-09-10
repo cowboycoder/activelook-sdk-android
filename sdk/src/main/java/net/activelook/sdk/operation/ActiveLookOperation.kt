@@ -108,9 +108,9 @@ sealed class ActiveLookOperation {
         }
     }
 
-    class DisplayScreen(screenId: Int) : ActiveLookOperation() {
+    class DisplayScreen(screenId: Int, text: String) : ActiveLookOperation() {
         override val commands: Array<ActiveLookCommand> = arrayOf(
-            ActiveLookCommand.DisplayLayout(screenId)
+            ActiveLookCommand.DisplayLayout(screenId, text)
         )
     }
 }

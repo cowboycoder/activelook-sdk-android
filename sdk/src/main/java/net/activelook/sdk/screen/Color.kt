@@ -20,11 +20,11 @@ class Color(colorHex: String) {
         }
 
         fun getRed(color: Int): Int {
-            return (color shl 16) and 0xFF
+            return (color shr 16) and 0xFF
         }
 
         fun getGreen(color: Int): Int {
-            return (color shl 8) and 0xFF
+            return (color shr 8) and 0xFF
         }
 
         fun getBlue(color: Int): Int {
@@ -42,7 +42,6 @@ class Color(colorHex: String) {
     fun getGrayscale(): Int {
         // https://en.wikipedia.org/wiki/Grayscale#Converting_color_to_grayscale
         val linear = 0.2126f * r + 0.7152f * g + 0.0722f * b
-
         return (linear / 17).toInt()
     }
 

@@ -133,8 +133,8 @@ internal sealed class ActiveLookCommand {
         override val command: String = "eraselayout $layoutId"
     }
 
-    data class DisplayLayout(val layoutId: Int) : ActiveLookCommand() {
-        override val command: String = "layout $layoutId Hi"
+    data class DisplayLayout(val layoutId: Int, val text: String) : ActiveLookCommand() {
+        override val command: String = "layout $layoutId $text"
     }
 
     // endregion Layout
