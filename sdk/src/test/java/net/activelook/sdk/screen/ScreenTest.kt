@@ -275,8 +275,8 @@ class ScreenTest {
     }
 
     @Test
-    fun `create a screen and map it to command`() {
-        val screen = Screen.Builder(10)
+    fun `map a screen to command`() {
+        var screen = Screen.Builder(10)
             .setPadding(0, 0, 0, 0)
             .setForegroundColor(15)
             .setBackgroundColor(0)
@@ -285,6 +285,45 @@ class ScreenTest {
             .build()
 
         assertEquals("0A00000000012FFF0F00030100E0800401", screen.mapToCommand())
+
+        screen = Screen.Builder(10)
+            .setPadding(0, 0, 0, 0)
+            .setForegroundColor(15)
+            .setBackgroundColor(0)
+            .setFont(Font.LARGE)
+            .setText(Point(224, 128), Orientation.R4, true)
+            .addWidget(TextWidget(15, 16, "Test"))
+            .build()
+
+        assertEquals(
+            "0A0A000000012FFF0F00030100E080040109000F00100454657374",
+            screen.mapToCommand()
+        )
+
+        screen = Screen.Builder(10)
+            .setPadding(0, 0, 0, 0)
+            .setForegroundColor(15)
+            .setBackgroundColor(0)
+            .setFont(Font.LARGE)
+            .setText(Point(224, 128), Orientation.R4, true)
+            .addWidget(TextWidget(15, 16, "Test2"))
+            .addWidget(TextWidget(15, 16, "Test3"))
+            .addWidget(TextWidget(15, 16, "Test4"))
+            .addWidget(TextWidget(15, 16, "Test5"))
+            .addWidget(TextWidget(15, 16, "Test6"))
+            .addWidget(TextWidget(15, 16, "Test7"))
+            .addWidget(TextWidget(15, 16, "Test8"))
+            .addWidget(TextWidget(15, 16, "Test9"))
+            .addWidget(TextWidget(15, 16, "Test10"))
+            .addWidget(TextWidget(15, 16, "Test11"))
+            .addWidget(TextWidget(15, 16, "Test12"))
+            .addWidget(TextWidget(15, 16, "Test13"))
+            .build()
+
+        assertEquals(
+            "0A64000000012FFF0F00030100E080040109000F001005546573743209000F001005546573743309000F001005546573743409000F001005546573743509000F001005546573743609000F001005546573743709000F001005546573743809000F001005546573743909000F001006546573743130",
+            screen.mapToCommand()
+        )
     }
 
 

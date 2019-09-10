@@ -87,4 +87,24 @@ class ActiveLookCommandTest {
         )
     }
 
+    @Test
+    fun `erase layout`() {
+        val command =
+            ActiveLookCommand.EraseLayout(15)
+        assertEquals(
+            "eraselayout 15",
+            command.command
+        )
+    }
+
+    @Test
+    fun `display layout`() {
+        val command =
+            ActiveLookCommand.DisplayLayout(15, "Test")
+        assertEquals(
+            "layout 15 Test",
+            command.command
+        )
+    }
+
 }
