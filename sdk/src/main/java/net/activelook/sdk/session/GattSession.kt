@@ -6,8 +6,10 @@ import android.util.Log
 import androidx.annotation.RequiresPermission
 import net.activelook.sdk.blemodel.Characteristic
 import net.activelook.sdk.blemodel.Service
+import net.activelook.sdk.command.ActiveLookCommand
 import net.activelook.sdk.command.ActiveLookCommandFragment
 import net.activelook.sdk.notification.ActiveLookNotification
+import java.util.*
 import java.util.concurrent.CountDownLatch
 
 // TODO: need handlers to communicate messages for callbacks
@@ -42,6 +44,7 @@ internal class GattSession(val device: BluetoothDevice, private val sessionHandl
     /**
      * Write an [ActiveLookCommandFragment] to the BLE device
      */
+    @Synchronized
     fun writeCommandFragment(fragment: ActiveLookCommandFragment): Int {
         val l = CountDownLatch(1)
         write(fragment.data)
