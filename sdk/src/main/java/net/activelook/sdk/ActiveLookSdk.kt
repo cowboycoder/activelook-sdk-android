@@ -7,8 +7,10 @@ import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.os.Build
 import android.os.Handler
+import android.util.Log
 import androidx.annotation.RequiresPermission
 import net.activelook.sdk.command.ActiveLookCommand
+import net.activelook.sdk.notification.ActiveLookNotification
 import net.activelook.sdk.operation.ActiveLookOperation
 import net.activelook.sdk.operation.ActiveLookOperationCallback
 import net.activelook.sdk.operation.ActiveLookOperationProcessor
@@ -92,7 +94,7 @@ class ActiveLookSdk(private val bleManager: BluetoothManager) {
 
         enqueueDisconnect(device)
 
-        currentSession = GattSession(device, gattSessionHandler)
+        currentSession = GattSession(device, gattSessionHandler, gattNotificationHandler)
         device.connectGattCompat(unused, false, currentSession!!)
     }
 
@@ -134,6 +136,17 @@ class ActiveLookSdk(private val bleManager: BluetoothManager) {
         when(val sessionEvent = it.obj) {
             is GattSession.Event.Established -> onConnectionEstablished(sessionEvent.session)
             is GattSession.Event.Closed -> onConnectionClosed(sessionEvent.session, sessionEvent.reason)
+        }
+        true
+    }
+
+    private var gattNotificationHandler = Handler {
+        val notif = (it.obj as? GattSession.Notification) ?: return@Handler false
+        when(notif) {
+            is GattSession.Notification.BatteryLevel -> {
+                Log.d("TEST", "got BatteryLevel: ${notif.percentage}")
+                // TODO: signal to client with notif.percentage
+            }
         }
         true
     }
