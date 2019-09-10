@@ -149,6 +149,12 @@ class Screen private constructor(
             val x1 = MAX_WIDTH - paddingRight
             val y1 = MAX_HEIGHT - paddingBottom
 
+            for (widget in widgets) {
+                if (widget is HasPosition) {
+                    widget.setPadding(paddingLeft, paddingTop, paddingRight, paddingBottom)
+                }
+            }
+
             return Screen(
                 id,
                 x0,
