@@ -286,4 +286,6 @@ class ScreenTest {
 
         assertEquals("0A00000000012FFF0F00030100E0800401", screen.mapToCommand())
     }
+
+
 }
