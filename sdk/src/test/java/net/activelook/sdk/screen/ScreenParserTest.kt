@@ -662,4 +662,253 @@ class ScreenParserTest {
 
         Screen.Builder(json).build()
     }
+
+    @Test
+    fun generateScreenFromJsonWithRectangleWidget() {
+        val json = """
+            |{
+            |    "version": 1,
+            |    "id": "10",
+            |    "padding": {
+            |        "left": 12,
+            |        "right": 12,
+            |        "top": 5,
+            |        "bottom": 5
+            |    },
+            |    "widgets": [
+            |       {
+            |           "type": "rectangle",
+            |           "position": {
+            |               "x": 36,
+            |               "y": 13
+            |           },
+            |           "height": 36,
+            |           "width": 13,
+            |           "color": "#32f3e1",
+            |           "style": "filled"
+            |       }
+            |    ]
+            |}"""
+            .trimMargin()
+
+        val screen = Screen.Builder(json).build()
+
+        assertEquals(10, screen.id)
+        assertEquals(12, screen.x0)
+        assertEquals(5, screen.y0)
+        assertEquals(291, screen.x1)
+        assertEquals(250, screen.y1)
+
+        val widget: Widget = RectangleWidget(36, 13, 36, 13, true, Color("#32f3e1"))
+
+        assertThat(screen.widgets, `is`(listOf(widget)))
+    }
+
+    @Test
+    fun generateScreenFromJsonWithRectangleWidgetWithOutlineStyle() {
+        val json = """
+            |{
+            |    "version": 1,
+            |    "id": "10",
+            |    "padding": {
+            |        "left": 12,
+            |        "right": 12,
+            |        "top": 5,
+            |        "bottom": 5
+            |    },
+            |    "widgets": [
+            |       {
+            |           "type": "rectangle",
+            |           "position": {
+            |               "x": 36,
+            |               "y": 13
+            |           },
+            |           "height": 36,
+            |           "width": 13,
+            |           "color": "#32f3e1",
+            |           "style": "outline"
+            |       }
+            |    ]
+            |}"""
+            .trimMargin()
+
+        val screen = Screen.Builder(json).build()
+
+        assertEquals(10, screen.id)
+        assertEquals(12, screen.x0)
+        assertEquals(5, screen.y0)
+        assertEquals(291, screen.x1)
+        assertEquals(250, screen.y1)
+
+        val widget: Widget = RectangleWidget(36, 13, 36, 13, false, Color("#32f3e1"))
+
+        assertThat(screen.widgets, `is`(listOf(widget)))
+    }
+
+    @Test
+    fun generateScreenFromJsonWithRectangleWidgetWithoutStyle() {
+        val json = """
+            |{
+            |    "version": 1,
+            |    "id": "10",
+            |    "padding": {
+            |        "left": 12,
+            |        "right": 12,
+            |        "top": 5,
+            |        "bottom": 5
+            |    },
+            |    "widgets": [
+            |       {
+            |           "type": "rectangle",
+            |           "position": {
+            |               "x": 36,
+            |               "y": 13
+            |           },
+            |           "height": 36,
+            |           "width": 13,
+            |           "color": "#32f3e1"
+            |       }
+            |    ]
+            |}"""
+            .trimMargin()
+
+        val screen = Screen.Builder(json).build()
+
+        assertEquals(10, screen.id)
+        assertEquals(12, screen.x0)
+        assertEquals(5, screen.y0)
+        assertEquals(291, screen.x1)
+        assertEquals(250, screen.y1)
+
+        val widget: Widget = RectangleWidget(36, 13, 36, 13, true, Color("#32f3e1"))
+
+        assertThat(screen.widgets, `is`(listOf(widget)))
+    }
+
+    @Test
+    fun generateScreenFromJsonWithRectangleWidgetWithoutColor() {
+        val json = """
+            |{
+            |    "version": 1,
+            |    "id": "10",
+            |    "padding": {
+            |        "left": 12,
+            |        "right": 12,
+            |        "top": 5,
+            |        "bottom": 5
+            |    },
+            |    "widgets": [
+            |       {
+            |           "type": "rectangle",
+            |           "position": {
+            |               "x": 36,
+            |               "y": 13
+            |           },
+            |           "height": 36,
+            |           "width": 13,
+            |           "style": "filled"
+            |       }
+            |    ]
+            |}"""
+            .trimMargin()
+
+        val screen = Screen.Builder(json).build()
+
+        assertEquals(10, screen.id)
+        assertEquals(12, screen.x0)
+        assertEquals(5, screen.y0)
+        assertEquals(291, screen.x1)
+        assertEquals(250, screen.y1)
+
+        val widget: Widget = RectangleWidget(36, 13, 36, 13, true, null)
+
+        assertThat(screen.widgets, `is`(listOf(widget)))
+    }
+
+    @Test(expected = JsonInvalidException::class)
+    fun generateScreenFromJsonWithRectangleWidgetWithoutWidth() {
+        val json = """
+            |{
+            |    "version": 1,
+            |    "id": "10",
+            |    "padding": {
+            |        "left": 12,
+            |        "right": 12,
+            |        "top": 5,
+            |        "bottom": 5
+            |    },
+            |    "widgets": [
+            |       {
+            |           "type": "rectangle",
+            |           "position": {
+            |               "x": 36,
+            |               "y": 13
+            |           },
+            |           "height": 36,
+            |           "color": "#32f3e1",
+            |           "style": "filled"
+            |       }
+            |    ]
+            |}"""
+            .trimMargin()
+
+        Screen.Builder(json).build()
+    }
+
+    @Test(expected = JsonInvalidException::class)
+    fun generateScreenFromJsonWithRectangleWidgetWithoutHeight() {
+        val json = """
+            |{
+            |    "version": 1,
+            |    "id": "10",
+            |    "padding": {
+            |        "left": 12,
+            |        "right": 12,
+            |        "top": 5,
+            |        "bottom": 5
+            |    },
+            |    "widgets": [
+            |       {
+            |           "type": "rectangle",
+            |           "position": {
+            |               "x": 36,
+            |               "y": 13
+            |           },
+            |           "width": 13,
+            |           "color": "#32f3e1",
+            |           "style": "filled"
+            |       }
+            |    ]
+            |}"""
+            .trimMargin()
+
+        Screen.Builder(json).build()
+    }
+
+    @Test(expected = JsonInvalidException::class)
+    fun generateScreenFromJsonWithRectangleWidgetWithoutPosition() {
+        val json = """
+            |{
+            |    "version": 1,
+            |    "id": "10",
+            |    "padding": {
+            |        "left": 12,
+            |        "right": 12,
+            |        "top": 5,
+            |        "bottom": 5
+            |    },
+            |    "widgets": [
+            |       {
+            |           "type": "rectangle",
+            |           "height": 36,
+            |           "width": 13,
+            |           "color": "#32f3e1",
+            |           "style": "filled"
+            |       }
+            |    ]
+            |}"""
+            .trimMargin()
+
+        Screen.Builder(json).build()
+    }
 }
