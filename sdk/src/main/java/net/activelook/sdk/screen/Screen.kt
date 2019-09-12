@@ -3,6 +3,8 @@ package net.activelook.sdk.screen
 import net.activelook.sdk.Font
 import net.activelook.sdk.util.Point
 import net.activelook.sdk.util.toHex
+import net.activelook.sdk.widget.HasPosition
+import net.activelook.sdk.widget.Widget
 import kotlin.math.max
 import kotlin.math.min
 
