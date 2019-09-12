@@ -2,6 +2,8 @@ package net.activelook.sdk.screen
 
 import net.activelook.sdk.Font
 import net.activelook.sdk.util.Point
+import net.activelook.sdk.widget.TextWidget
+import net.activelook.sdk.widget.Widget
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
