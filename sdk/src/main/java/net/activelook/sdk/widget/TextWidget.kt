@@ -1,6 +1,8 @@
-package net.activelook.sdk.screen
+package net.activelook.sdk.widget
 
 import net.activelook.sdk.Font
+import net.activelook.sdk.screen.Color
+import net.activelook.sdk.screen.Screen
 import net.activelook.sdk.util.toHex
 
 data class TextWidget(
@@ -10,8 +12,6 @@ data class TextWidget(
     val font: Font? = null,
     val color: Color? = null
 ) : Widget(), HasPosition {
-
-    override val id: Int = 9
 
     override var paddingLeft: Int = 0
     override var paddingTop: Int = 0
@@ -29,17 +29,17 @@ data class TextWidget(
         get() {
             var command = ""
             if (color != null) {
-                command += "${3.toHex()}${color.getGrayscale().toHex()}"
+                command += "${ID_COLOR.toHex()}${color.getGrayscale().toHex()}"
             }
 
             if (font != null) {
-                command += "${4.toHex()}${font.value.toHex()}"
+                command += "${ID_FONT.toHex()}${font.value.toHex()}"
             }
 
             val x = Screen.MAX_WIDTH - this.paddingLeft - this.x
             val y = Screen.MAX_HEIGHT - this.paddingTop - this.y
 
-            command += "${id.toHex()}${x.toHex(4)}${y.toHex(4)}" +
+            command += "${ID_TEXT.toHex()}${x.toHex(4)}${y.toHex(4)}" +
                     "${text.length.toHex()}${text.toHex()}"
 
             return command

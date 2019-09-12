@@ -6,6 +6,9 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.adapters.PolymorphicJsonAdapterFactory
 import net.activelook.sdk.exception.JsonInvalidException
 import net.activelook.sdk.exception.JsonVersionInvalidException
+import net.activelook.sdk.widget.CircleWidget
+import net.activelook.sdk.widget.TextWidget
+import net.activelook.sdk.widget.Widget
 
 internal object ScreenParser {
 
@@ -13,6 +16,7 @@ internal object ScreenParser {
         .add(
             PolymorphicJsonAdapterFactory.of(WidgetJson::class.java, "type")
                 .withSubtype(WidgetJson.TextWidgetJson::class.java, WidgetType.text.name)
+                .withSubtype(WidgetJson.CircleWidgetJson::class.java, WidgetType.circle.name)
         )
         .build()
 
@@ -78,6 +82,7 @@ internal object ScreenParser {
 
         abstract fun mapToModel(): Widget
 
+        @JsonClass(generateAdapter = true)
         internal class TextWidgetJson(
             val position: PositionJson,
             val orientation: Int,
@@ -95,7 +100,25 @@ internal object ScreenParser {
                     color = Color(color)
                 )
             }
+        }
 
+        @JsonClass(generateAdapter = true)
+        internal class CircleWidgetJson(
+            val position: PositionJson,
+            val radius: Int,
+            val color: String? = null,
+            val style: Style? = Style.filled
+        ) : WidgetJson(WidgetType.text) {
+
+            override fun mapToModel(): Widget {
+                return CircleWidget(
+                    this.position.x,
+                    this.position.y,
+                    this.radius,
+                    color = color?.let { Color(it) },
+                    isFilled = style != Style.outline
+                )
+            }
         }
     }
 
@@ -106,7 +129,13 @@ internal object ScreenParser {
     )
 
     internal enum class WidgetType {
-        text
+        text,
+        circle
+    }
+
+    internal enum class Style {
+        filled,
+        outline
     }
 
 }

@@ -14,8 +14,10 @@ import kotlinx.android.synthetic.main.list_item_operation.view.*
 import net.activelook.sdk.ActiveLookSdk
 import net.activelook.sdk.LoadingMode
 import net.activelook.sdk.operation.ActiveLookOperation
+import net.activelook.sdk.screen.Color
 import net.activelook.sdk.screen.Screen
-import net.activelook.sdk.screen.TextWidget
+import net.activelook.sdk.widget.CircleWidget
+import net.activelook.sdk.widget.TextWidget
 
 class OperationsActivity : AppCompatActivity() {
 
@@ -38,6 +40,7 @@ class OperationsActivity : AppCompatActivity() {
         val screen = Screen.Builder(10)
             .setPadding(0, 50, 0, 0)
             .addWidget(TextWidget(50, 50, "Hello!"))
+            .addWidget(CircleWidget(150, 100, 20, true, Color("#FFFFFF")))
             .build()
 
 
