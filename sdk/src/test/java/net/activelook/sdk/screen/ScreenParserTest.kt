@@ -2,10 +2,7 @@ package net.activelook.sdk.screen
 
 import net.activelook.sdk.exception.JsonInvalidException
 import net.activelook.sdk.exception.JsonVersionInvalidException
-import net.activelook.sdk.widget.CircleWidget
-import net.activelook.sdk.widget.LineWidget
-import net.activelook.sdk.widget.TextWidget
-import net.activelook.sdk.widget.Widget
+import net.activelook.sdk.widget.*
 import org.hamcrest.CoreMatchers.`is`
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThat
@@ -558,6 +555,105 @@ class ScreenParserTest {
             |               "x": 36,
             |               "y": 13
             |           },
+            |           "color": "#32f3e1"
+            |       }
+            |    ]
+            |}"""
+            .trimMargin()
+
+        Screen.Builder(json).build()
+    }
+
+    @Test
+    fun generateScreenFromJsonWithPointWidget() {
+        val json = """
+            |{
+            |    "version": 1,
+            |    "id": "10",
+            |    "padding": {
+            |        "left": 12,
+            |        "right": 12,
+            |        "top": 5,
+            |        "bottom": 5
+            |    },
+            |    "widgets": [
+            |       {
+            |           "type": "point",
+            |           "position": {
+            |               "x": 36,
+            |               "y": 13
+            |           },
+            |           "color": "#32f3e1"
+            |       }
+            |    ]
+            |}"""
+            .trimMargin()
+
+        val screen = Screen.Builder(json).build()
+
+        assertEquals(10, screen.id)
+        assertEquals(12, screen.x0)
+        assertEquals(5, screen.y0)
+        assertEquals(291, screen.x1)
+        assertEquals(250, screen.y1)
+
+        val widget: Widget = PointWidget(36, 13, Color("#32f3e1"))
+
+        assertThat(screen.widgets, `is`(listOf(widget)))
+    }
+
+    @Test
+    fun generateScreenFromJsonWithPointWidgetWithoutColor() {
+        val json = """
+            |{
+            |    "version": 1,
+            |    "id": "10",
+            |    "padding": {
+            |        "left": 12,
+            |        "right": 12,
+            |        "top": 5,
+            |        "bottom": 5
+            |    },
+            |    "widgets": [
+            |       {
+            |           "type": "point",
+            |           "position": {
+            |               "x": 36,
+            |               "y": 13
+            |           }
+            |       }
+            |    ]
+            |}"""
+            .trimMargin()
+
+        val screen = Screen.Builder(json).build()
+
+        assertEquals(10, screen.id)
+        assertEquals(12, screen.x0)
+        assertEquals(5, screen.y0)
+        assertEquals(291, screen.x1)
+        assertEquals(250, screen.y1)
+
+        val widget: Widget = PointWidget(36, 13)
+
+        assertThat(screen.widgets, `is`(listOf(widget)))
+    }
+
+    @Test(expected = JsonInvalidException::class)
+    fun generateScreenFromJsonWithPointWidgetWithoutPosition() {
+        val json = """
+            |{
+            |    "version": 1,
+            |    "id": "10",
+            |    "padding": {
+            |        "left": 12,
+            |        "right": 12,
+            |        "top": 5,
+            |        "bottom": 5
+            |    },
+            |    "widgets": [
+            |       {
+            |           "type": "point",
             |           "color": "#32f3e1"
             |       }
             |    ]
