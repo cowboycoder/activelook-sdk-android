@@ -38,11 +38,11 @@ Exemple de code
 
 # Give feedback
 
-Please contact us at contact@activelook.net
+Please contact us at developer@activelook.net
 
 # Licence
 
-Copyright 2019 ActiveLook
+Copyright 2019 Microoled
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
