@@ -6,6 +6,8 @@ plugins {
 
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
+apply plugin: 'jacoco-android'
 
 project.group = "net.activelook.sdk"
 project.version = "0.0.1"
@@ -37,6 +39,15 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+        debug {
+            testCoverageEnabled = true
+        }
+    }
+
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+        }
     }
 
 }
@@ -45,10 +56,23 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'androidx.annotation:annotation:1.1.0'
+    implementation("com.squareup.moshi:moshi:1.8.0")
+    implementation("com.squareup.moshi:moshi-adapters:1.8.0")
+    kapt("com.squareup.moshi:moshi-kotlin-codegen:1.8.0")
     testImplementation 'junit:junit:4.12'
+    testImplementation("androidx.test:core-ktx:1.2.0")
+    testImplementation("org.robolectric:robolectric:4.3")
+    testImplementation("io.mockk:mockk:1.9.3")
     androidTestImplementation 'androidx.test:runner:1.2.0'
+    androidTestImplementation 'androidx.test.ext:junit-ktx:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 }
+
+jacoco {
+    toolVersion = "0.8.4"
+    reportsDir = file("$buildDir/reports")
+}
+
 
 apply from: './maven.gradle'
 apply from: './bintray.gradle'

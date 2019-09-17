@@ -12,11 +12,16 @@ import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.activity_operations.*
 import kotlinx.android.synthetic.main.list_item_operation.view.*
 import net.activelook.sdk.ActiveLookSdk
+import net.activelook.sdk.LoadingMode
 import net.activelook.sdk.operation.ActiveLookOperation
+import net.activelook.sdk.screen.Screen
+import net.activelook.sdk.screen.TextWidget
 
 class OperationsActivity : AppCompatActivity() {
 
     private val adapter = OperationListAdapter()
+
+    private val sdkInstance = ActiveLookSdk.getInstance(this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,21 +35,27 @@ class OperationsActivity : AppCompatActivity() {
     }
 
     private fun initOperations() {
+        val screen = Screen.Builder(10)
+            .setPadding(0, 50, 0, 0)
+            .addWidget(TextWidget(50, 50, "Hello!"))
+            .build()
+
+
         val operations = listOf(
             OperationClick(getString(R.string.operation_hello)) {
-                ActiveLookSdk.shared.enqueueOperation(ActiveLookOperation.Hello)
+                sdkInstance.enqueueOperation(ActiveLookOperation.Hello)
             },
             OperationClick(getString(R.string.operation_battery)) {
-                ActiveLookSdk.shared.enqueueOperation(ActiveLookOperation.GetBattery)
+                sdkInstance.enqueueOperation(ActiveLookOperation.GetBattery)
             },
             OperationSwitch(getString(R.string.operation_display), true) {
-                ActiveLookSdk.shared.enqueueOperation(ActiveLookOperation.Display(it))
+                sdkInstance.enqueueOperation(ActiveLookOperation.Display(it))
             },
             OperationClick(getString(R.string.operation_clear)) {
-                ActiveLookSdk.shared.enqueueOperation(ActiveLookOperation.ClearScreen)
+                sdkInstance.enqueueOperation(ActiveLookOperation.ClearScreen)
             },
             OperationSwitch(getString(R.string.operation_led), true) {
-                ActiveLookSdk.shared.enqueueOperation(ActiveLookOperation.SetLed(it))
+                sdkInstance.enqueueOperation(ActiveLookOperation.SetLed(it))
             },
             OperationSliderAndSwitch(
                 getString(R.string.operation_brightness),
@@ -53,10 +64,31 @@ class OperationsActivity : AppCompatActivity() {
                 -50,
                 50
             ) { progress, isChecked ->
-                ActiveLookSdk.shared.enqueueOperation(
+                sdkInstance.enqueueOperation(
                     ActiveLookOperation.SetBrightness(
                         progress,
                         isChecked
+                    )
+                )
+            },
+            OperationSwitch("Set loading mode to lazy", false) {
+                if (it) {
+                    sdkInstance.loadingMode = LoadingMode.LAZY
+                } else {
+                    sdkInstance.loadingMode = LoadingMode.NORMAL
+                }
+            },
+            OperationClick("Save screen") {
+                sdkInstance.enqueueOperation(ActiveLookOperation.AddScreen(screen))
+            },
+            OperationClick("Delete screen") {
+                sdkInstance.enqueueOperation(ActiveLookOperation.DeleteScreen(screen.id))
+            },
+            OperationClick("Display screen") {
+                sdkInstance.enqueueOperation(
+                    ActiveLookOperation.DisplayScreen(
+                        screen.id,
+                        "Hi"
                     )
                 )
             }

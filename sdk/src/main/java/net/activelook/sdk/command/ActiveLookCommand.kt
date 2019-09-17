@@ -2,11 +2,13 @@ package net.activelook.sdk.command
 
 import android.graphics.Point
 import android.graphics.Rect
+import net.activelook.sdk.blemodel.Characteristic
+import net.activelook.sdk.blemodel.Service
 import java.nio.charset.Charset
 import kotlin.math.max
 import kotlin.math.min
 
-internal sealed class ActiveLookCommand: Enqueueable {
+internal sealed class ActiveLookCommand {
 
     abstract val command: String
 
@@ -104,6 +106,38 @@ internal sealed class ActiveLookCommand: Enqueueable {
     // region Image
     // TODO:
     // endregion Image
+
+    // region Notifications
+    sealed class Notify(val service: Service, val characteristic: Characteristic): ActiveLookCommand() {
+
+        object BatteryLevel: Notify(Service.Battery, Characteristic.BatteryLevel) {
+            override val command = ""
+        }
+
+        object TxServer: Notify(Service.CommandInterface, Characteristic.TxServer) {
+            override val command = ""
+        }
+    }
+    // endregion Notifications
+    // region Layout
+
+    data class SaveLayout(
+        val layoutString: String
+    ) : ActiveLookCommand() {
+        override val command: String = "savelayout 0x${layoutString}"
+    }
+
+    data class EraseLayout(
+        val layoutId: Int
+    ) : ActiveLookCommand() {
+        override val command: String = "eraselayout $layoutId"
+    }
+
+    data class DisplayLayout(val layoutId: Int, val text: String) : ActiveLookCommand() {
+        override val command: String = "layout $layoutId $text"
+    }
+
+    // endregion Layout
 }
 
 /**
