@@ -18,7 +18,7 @@ import java.util.concurrent.CountDownLatch
 internal open class GattSession(
     val device: BluetoothDevice,
     private val sessionHandler: Handler,
-    private val notificationHandler: Handler
+    notificationHandler: Handler
 ) : BluetoothGattCallback() {
 
     /**
@@ -39,10 +39,15 @@ internal open class GattSession(
     private var gatt: BluetoothGatt? = null
     private var latch: CountDownLatch? = null
     private var currentResult: Int? = null
+    private val notificationHandlers: MutableList<Handler> = mutableListOf(notificationHandler)
 
     // endregion Private Properties
 
     // region Internal Methods
+
+    fun addNotificationHandler(notificationHandler: Handler) {
+        notificationHandlers.add(notificationHandler)
+    }
 
     /**
      * Write an [ActiveLookCommandFragment] to the BLE device
@@ -55,6 +60,13 @@ internal open class GattSession(
         latch = l
         l.await()
         return currentResult ?: -1
+    }
+
+    fun read() {
+        val g = gatt ?: return
+        val service = g.getService(Service.CommandInterface.uuid)
+        val characteristic = service.getCharacteristic(Characteristic.TxServer.uuid)
+        g.readCharacteristic(characteristic)
     }
 
 //    @Synchronized
@@ -132,7 +144,7 @@ internal open class GattSession(
     override fun onCharacteristicWrite(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic, status: Int) {
         currentResult = status
         val value = characteristic.getStringValue(0)
-        Log.d("TEST", "got characteristic write notification: $value")
+        Log.d("TEST", "write: $value")
         latch?.countDown()
     }
 
@@ -141,16 +153,34 @@ internal open class GattSession(
             Characteristic.BatteryLevel.uuid -> {
                 val value = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0)
                 val batteryLevel = Notification.BatteryLevel(value)
-                val message = notificationHandler.obtainMessage(0, batteryLevel)
-                notificationHandler.sendMessage(message)
+                for (notificationHandler in notificationHandlers) {
+                    val message = notificationHandler.obtainMessage(0, batteryLevel)
+                    notificationHandler.sendMessage(message)
+                }
             }
             Characteristic.TxServer.uuid -> {
-                val value = characteristic.getStringValue(0)
-                val sentText = Notification.TxServer(value)
-                val message = notificationHandler.obtainMessage(0, sentText)
-                notificationHandler.sendMessage(message)
+                val intValue =
+                    characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0)
+                val stringValue = characteristic.getStringValue(0)
+                val sentText = Notification.TxServer(stringValue.toString())
+
+                Log.d("TEST", "changed: $intValue $stringValue")
+
+                for (notificationHandler in notificationHandlers) {
+                    val message = notificationHandler.obtainMessage(0, sentText)
+                    notificationHandler.sendMessage(message)
+                }
             }
         }
+    }
+
+    override fun onCharacteristicRead(
+        gatt: BluetoothGatt,
+        characteristic: BluetoothGattCharacteristic,
+        status: Int
+    ) {
+        val value = characteristic.value.map { it.toChar() }.joinToString("")
+        Log.d("TEST", "read: $value")
     }
 
     override fun onDescriptorWrite(gatt: BluetoothGatt?, descriptor: BluetoothGattDescriptor?, status: Int) {
@@ -192,8 +222,11 @@ internal open class GattSession(
         val g = gatt ?: return false
         val service = g.getService(notification.service.uuid)
         val characteristic = service.getCharacteristic(notification.characteristic.uuid)
-        val descriptor = characteristic.getDescriptor(Descriptor.ClientCharacteristicConfiguration.uuid)
+
+        characteristic.writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
         g.setCharacteristicNotification(characteristic, true)
+
+        val descriptor = characteristic.getDescriptor(Descriptor.ClientCharacteristicConfiguration.uuid)
         descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
         return g.writeDescriptor(descriptor)
     }

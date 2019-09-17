@@ -4,9 +4,25 @@ import android.graphics.Point
 import android.graphics.Rect
 import net.activelook.sdk.blemodel.Characteristic
 import net.activelook.sdk.blemodel.Service
+import net.activelook.sdk.screen.Screen
+import net.activelook.sdk.util.toHex
 import java.nio.charset.Charset
 import kotlin.math.max
 import kotlin.math.min
+
+internal interface ActiveLookCommandWrapper {
+
+    val commands: Array<ActiveLookCommand>
+
+}
+
+internal interface NeedPreviousResult {
+    fun setPreviousResult(result: String)
+}
+
+internal interface NeedPreviousResults {
+    fun setPreviousResults(results: List<String>)
+}
 
 internal sealed class ActiveLookCommand {
 
@@ -31,6 +47,18 @@ internal sealed class ActiveLookCommand {
     // region Misc
     object Clear: ActiveLookCommand() {
         override val command = "clear"
+    }
+
+    data class Debug(val on: Boolean) : ActiveLookCommand() {
+        override val command = if (on) {
+            "debug on"
+        } else {
+            "debug off"
+        }
+    }
+
+    object Version : ActiveLookCommand() {
+        override val command = "vers"
     }
 
     data class Led(val on: Boolean) : ActiveLookCommand() {
@@ -104,7 +132,27 @@ internal sealed class ActiveLookCommand {
     // endregion Text
 
     // region Image
-    // TODO:
+
+    object ListBitmaps : ActiveLookCommand() {
+        override val command: String = "bmplist"
+    }
+
+    data class SaveBitmap(val size: Int, val width: Int, val bitmap: String) : ActiveLookCommand() {
+        override val command = "savebmp $size $width 0x${bitmap.toHex()}"
+    }
+
+    data class Bitmap(val bitmapNumber: Int, val x: Int, val y: Int) : ActiveLookCommand() {
+        override val command = "bitmap $bitmapNumber $x $y"
+    }
+
+    data class EraseBitmap(val bitmapNumber: Int) : ActiveLookCommand() {
+        override val command = "erasebmp $bitmapNumber"
+    }
+
+    object EraseAllBitmaps : ActiveLookCommand() {
+        override val command = "erasebmp all"
+    }
+
     // endregion Image
 
     // region Notifications
@@ -122,9 +170,17 @@ internal sealed class ActiveLookCommand {
     // region Layout
 
     data class SaveLayout(
-        val layoutString: String
-    ) : ActiveLookCommand() {
-        override val command: String = "savelayout 0x${layoutString}"
+        val screen: Screen
+    ) : ActiveLookCommand(), NeedPreviousResults {
+
+        override fun setPreviousResults(results: List<String>) {
+            screen.widgets
+        }
+
+        override val command: String
+            get() {
+                return "savelayout 0x${screen.mapToCommand()}"
+            }
     }
 
     data class EraseLayout(

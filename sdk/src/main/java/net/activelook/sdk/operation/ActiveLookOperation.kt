@@ -1,9 +1,15 @@
 package net.activelook.sdk.operation
 
+import android.content.ContentResolver
+import android.graphics.Bitmap
 import android.graphics.Point
 import android.graphics.Rect
+import android.net.Uri
+import android.provider.MediaStore
 import net.activelook.sdk.command.ActiveLookCommand
 import net.activelook.sdk.screen.Screen
+import net.activelook.sdk.util.toBase64
+import net.activelook.sdk.widget.BitmapWidget
 
 sealed class ActiveLookOperation {
 
@@ -51,6 +57,22 @@ sealed class ActiveLookOperation {
         )
     }
 
+    class SetDebug(on: Boolean) : ActiveLookOperation() {
+        override val commands: Array<ActiveLookCommand> = if (on) {
+            arrayOf(ActiveLookCommand.Debug(true))
+        } else {
+            arrayOf(
+                ActiveLookCommand.Debug(false)
+            )
+        }
+    }
+
+    object Version : ActiveLookOperation() {
+        override val commands: Array<ActiveLookCommand> = arrayOf(
+            ActiveLookCommand.Version
+        )
+    }
+
     class SetLed(on: Boolean) : ActiveLookOperation() {
         override val commands: Array<ActiveLookCommand> = if (on) {
             arrayOf(ActiveLookCommand.Led(true))
@@ -74,11 +96,48 @@ sealed class ActiveLookOperation {
         )
     }
 
-    class AddScreen(screen: Screen) : ActiveLookOperation() {
-
+    class AddBitmap(private val bitmap: Bitmap) : ActiveLookOperation() {
         override val commands: Array<ActiveLookCommand> = arrayOf(
-            ActiveLookCommand.SaveLayout(screen.mapToCommand())
+            ActiveLookCommand.SaveBitmap(
+                bitmap.width * bitmap.height,
+                bitmap.width,
+                bitmap.toBase64()
+            )
         )
+    }
+
+    object ListBitmaps : ActiveLookOperation() {
+        override val commands: Array<ActiveLookCommand> = arrayOf(
+            ActiveLookCommand.ListBitmaps
+        )
+    }
+
+    class AddScreen(private val screen: Screen, private val contentResolver: ContentResolver) :
+        ActiveLookOperation() {
+
+        override val commands: Array<ActiveLookCommand>
+            get() {
+                var commands: Array<ActiveLookCommand> = arrayOf()
+
+                val bitmapWidgets = screen.widgets.filterIsInstance<BitmapWidget>()
+                if (bitmapWidgets.isNotEmpty()) {
+                    for (bitmapWidget in bitmapWidgets) {
+                        val bitmap = MediaStore.Images.Media.getBitmap(
+                            contentResolver,
+                            Uri.parse(bitmapWidget.source)
+                        )
+                        commands += ActiveLookCommand.SaveBitmap(
+                            bitmap.byteCount,
+                            bitmap.width,
+                            bitmap.toBase64()
+                        )
+                    }
+                }
+
+                commands += ActiveLookCommand.SaveLayout(screen)
+
+                return commands
+            }
     }
 
     class DeleteScreen(screenId: Int) : ActiveLookOperation() {
