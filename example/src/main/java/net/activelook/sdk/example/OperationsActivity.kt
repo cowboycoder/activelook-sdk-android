@@ -6,6 +6,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.SeekBar
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.drawable.toBitmap
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -50,11 +52,17 @@ class OperationsActivity : AppCompatActivity() {
             OperationClick(getString(R.string.operation_hello)) {
                 sdkInstance.enqueueOperation(ActiveLookOperation.Hello)
             },
+            OperationClick("Version") {
+                sdkInstance.enqueueOperation(ActiveLookOperation.Version)
+            },
             OperationClick(getString(R.string.operation_battery)) {
                 sdkInstance.enqueueOperation(ActiveLookOperation.GetBattery)
             },
             OperationSwitch(getString(R.string.operation_display), true) {
                 sdkInstance.enqueueOperation(ActiveLookOperation.Display(it))
+            },
+            OperationSwitch("Debug", false) {
+                sdkInstance.enqueueOperation(ActiveLookOperation.SetDebug(it))
             },
             OperationClick(getString(R.string.operation_clear)) {
                 sdkInstance.enqueueOperation(ActiveLookOperation.ClearScreen)
@@ -84,7 +92,7 @@ class OperationsActivity : AppCompatActivity() {
                 }
             },
             OperationClick("Save screen") {
-                sdkInstance.enqueueOperation(ActiveLookOperation.AddScreen(screen))
+                sdkInstance.enqueueOperation(ActiveLookOperation.AddScreen(screen, contentResolver))
             },
             OperationClick("Delete screen") {
                 sdkInstance.enqueueOperation(ActiveLookOperation.DeleteScreen(screen.id))
@@ -95,6 +103,20 @@ class OperationsActivity : AppCompatActivity() {
                         screen.id,
                         "Hi"
                     )
+                )
+            },
+            OperationClick("Add bitmap") {
+                val bitmap = ResourcesCompat.getDrawable(resources, R.drawable.operation_play, null)
+                    ?.toBitmap()
+                if (bitmap != null) {
+                    sdkInstance.enqueueOperation(
+                        ActiveLookOperation.AddBitmap(bitmap)
+                    )
+                }
+            },
+            OperationClick("List bitmaps") {
+                sdkInstance.enqueueOperation(
+                    ActiveLookOperation.ListBitmaps
                 )
             }
         )
