@@ -33,6 +33,8 @@ class MainActivity : AppCompatActivity() {
         private const val REQUEST_ACCESS_COARSE_LOCATION = 9001
     }
 
+    private val sdkInstance = ActiveLookSdk.getInstance(this)
+
     private val scanCallback = object: ActiveLookSdk.ScanningCallback {
 
         override fun foundDevices(devices: List<BluetoothDevice>) {
@@ -48,12 +50,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private val itemClickListener: (RecyclerView.ViewHolder)->Unit = {
-        ActiveLookSdk.shared.stopScanning()
+        sdkInstance.stopScanning()
         if(lastClickedDevice != null) {
-            ActiveLookSdk.shared.disconnect(lastClickedDevice!!)
+            sdkInstance.disconnect(lastClickedDevice!!)
         }
         lastClickedDevice = adapter.getItem(it.adapterPosition)
-        ActiveLookSdk.shared.connect(this, lastClickedDevice!!)
+        sdkInstance.connect(this, lastClickedDevice!!)
     }
 
     private var lastClickedDevice: BluetoothDevice? = null
@@ -71,7 +73,7 @@ class MainActivity : AppCompatActivity() {
             image.setImageBitmap(drawable.bitmap.toGrayscale(16))
         }
 
-        ActiveLookSdk.shared.connectionListener = object: ActiveLookSdk.ConnectionListener {
+        sdkInstance.connectionListener = object : ActiveLookSdk.ConnectionListener {
             override fun activeLookConnectionEstablished() {
                 val intent = Intent(this@MainActivity, OperationsActivity::class.java)
                 startActivity(intent)
@@ -107,13 +109,13 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStop() {
         super.onStop()
-        ActiveLookSdk.shared.stopScanning()
+        sdkInstance.stopScanning()
     }
 
     override fun onDestroy() {
         super.onDestroy()
         if(lastClickedDevice != null) {
-            ActiveLookSdk.shared.disconnect(lastClickedDevice!!)
+            sdkInstance.disconnect(lastClickedDevice!!)
         }
     }
 
@@ -123,7 +125,7 @@ class MainActivity : AppCompatActivity() {
         if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION), REQUEST_ACCESS_COARSE_LOCATION)
         } else {
-            ActiveLookSdk.shared.startScanning(scanCallback)
+            sdkInstance.startScanning(scanCallback)
         }
     }
 

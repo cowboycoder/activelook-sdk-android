@@ -119,6 +119,25 @@ internal sealed class ActiveLookCommand {
         }
     }
     // endregion Notifications
+    // region Layout
+
+    data class SaveLayout(
+        val layoutString: String
+    ) : ActiveLookCommand() {
+        override val command: String = "savelayout 0x${layoutString}"
+    }
+
+    data class EraseLayout(
+        val layoutId: Int
+    ) : ActiveLookCommand() {
+        override val command: String = "eraselayout $layoutId"
+    }
+
+    data class DisplayLayout(val layoutId: Int, val text: String) : ActiveLookCommand() {
+        override val command: String = "layout $layoutId $text"
+    }
+
+    // endregion Layout
 }
 
 /**

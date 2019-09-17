@@ -1,7 +1,8 @@
 package net.activelook.sdk.operation
 
 import net.activelook.sdk.command.ActiveLookCommand
-import org.junit.Assert.assertArrayEquals
+import net.activelook.sdk.screen.Screen
+import org.junit.Assert.*
 import org.junit.Test
 
 class ActiveLookOperationTest {
@@ -127,6 +128,56 @@ class ActiveLookOperationTest {
         val expectedList = arrayOf(
             ActiveLookCommand.AmbientLightSensor(true),
             ActiveLookCommand.Luminosity(15)
+        )
+
+        assertArrayEquals(expectedList, commands)
+    }
+
+    @Test
+    fun `add screen`() {
+        val screen = Screen.Builder(15)
+            .build()
+        val operation: ActiveLookOperation = ActiveLookOperation.AddScreen(screen)
+        val commands = operation.commands
+
+        val expectedList = arrayOf(
+            ActiveLookCommand.SaveLayout(screen.mapToCommand())
+        )
+
+        assertArrayEquals(expectedList, commands)
+    }
+
+    @Test
+    fun `delete screen`() {
+        val operation: ActiveLookOperation = ActiveLookOperation.DeleteScreen(15)
+        val commands = operation.commands
+
+        val expectedList = arrayOf(
+            ActiveLookCommand.EraseLayout(15)
+        )
+
+        assertArrayEquals(expectedList, commands)
+    }
+
+    @Test
+    fun `delete all screens`() {
+        val operation: ActiveLookOperation = ActiveLookOperation.DeleteAllScreens()
+        val commands = operation.commands
+
+        assertEquals(50, commands.size)
+        val eraseLayoutCommands = commands.filterIsInstance<ActiveLookCommand.EraseLayout>()
+        assertEquals(50, eraseLayoutCommands.size)
+        assertEquals(50, eraseLayoutCommands.map { it.layoutId }.distinct().size)
+        assertTrue(eraseLayoutCommands.map { it.layoutId }.containsAll(IntRange(10, 59).toList()))
+    }
+
+    @Test
+    fun `display screen`() {
+        val operation: ActiveLookOperation = ActiveLookOperation.DisplayScreen(15, "Test")
+        val commands = operation.commands
+
+        val expectedList = arrayOf(
+            ActiveLookCommand.DisplayLayout(15, "Test")
         )
 
         assertArrayEquals(expectedList, commands)

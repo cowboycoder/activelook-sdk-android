@@ -15,7 +15,11 @@ import java.util.concurrent.CountDownLatch
 // TODO: ideas -> https://medium.com/@martijn.van.welie/making-android-ble-work-part-3-117d3a8aee23
 // TODO: need to find a solution for concatenating commands with `;`?
 
-internal class GattSession(val device: BluetoothDevice, private val sessionHandler: Handler, private val notificationHandler: Handler): BluetoothGattCallback() {
+internal open class GattSession(
+    val device: BluetoothDevice,
+    private val sessionHandler: Handler,
+    private val notificationHandler: Handler
+) : BluetoothGattCallback() {
 
     /**
      * Communicates session events to the [sessionHandler]
@@ -127,6 +131,8 @@ internal class GattSession(val device: BluetoothDevice, private val sessionHandl
 
     override fun onCharacteristicWrite(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic, status: Int) {
         currentResult = status
+        val value = characteristic.getStringValue(0)
+        Log.d("TEST", "got characteristic write notification: $value")
         latch?.countDown()
     }
 
