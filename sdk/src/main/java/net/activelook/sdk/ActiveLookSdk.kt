@@ -130,7 +130,7 @@ class ActiveLookSdk private constructor(private val bleManager: BluetoothManager
 
         currentSession ?: return
 
-        if (operation is ActiveLookOperation.DisplayScreen && waitingOperations.size > 0) {
+        if (operation is ActiveLookOperation.ShowScreen && waitingOperations.size > 0) {
             for (waitingOperation in waitingOperations) {
                 operationProcessor?.enqueueOperation(waitingOperation)
             }

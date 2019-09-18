@@ -42,6 +42,13 @@ sealed class ActiveLookOperation {
         )
     }
 
+    /**
+     * Display operation
+     *
+     * Power on or off the screen
+     *
+     * @param on if true, power on the screen, else, power off and clear
+     */
     class Display(on: Boolean) : ActiveLookOperation() {
         override val commands: Array<ActiveLookCommand> = if (on) {
             arrayOf(ActiveLookCommand.Power(true))
@@ -53,6 +60,9 @@ sealed class ActiveLookOperation {
         }
     }
 
+    /**
+     * Clear the screen
+     */
     object ClearScreen : ActiveLookOperation() {
 
         override val commands: Array<ActiveLookCommand> = arrayOf(
@@ -76,6 +86,11 @@ sealed class ActiveLookOperation {
         )
     }
 
+    /**
+     * Active the LED or not
+     *
+     * @param on if true, power on the LED, else, power off
+     */
     class SetLed(on: Boolean) : ActiveLookOperation() {
         override val commands: Array<ActiveLookCommand> = if (on) {
             arrayOf(ActiveLookCommand.Led(true))
@@ -86,6 +101,14 @@ sealed class ActiveLookOperation {
         }
     }
 
+    /**
+     * Set the overall brightness and activate or not the ambient light sensor
+     *
+     * The ambient light sensor will change automatically the brightness when it is activated.
+     *
+     * @param level Level of brightness, must be between 0 and 15
+     * @param autoAdjust Activate or not the ambient light sensor
+     */
     class SetBrightness(level: Int, autoAdjust: Boolean) : ActiveLookOperation() {
         override val commands: Array<ActiveLookCommand> = arrayOf(
             ActiveLookCommand.AmbientLightSensor(autoAdjust),
@@ -93,6 +116,9 @@ sealed class ActiveLookOperation {
         )
     }
 
+    /**
+     * Get the battery level
+     */
     object GetBattery: ActiveLookOperation() {
         override val commands: Array<ActiveLookCommand> = arrayOf(
             ActiveLookCommand.BatteryLevel
@@ -129,6 +155,11 @@ sealed class ActiveLookOperation {
         )
     }
 
+    /**
+     * Add a screen to the device
+     *
+     * @param screen The Screen to send
+     */
     class AddScreen(private val screen: Screen) : ActiveLookOperation() {
 
         override val commands: Array<ActiveLookCommand>
@@ -143,6 +174,11 @@ sealed class ActiveLookOperation {
             }
     }
 
+    /**
+     * Delete a screen from the device
+     *
+     * @param screenId The id of the screen that will be deleted
+     */
     class DeleteScreen(screenId: Int) : ActiveLookOperation() {
 
         override val commands: Array<ActiveLookCommand> = arrayOf(
@@ -150,6 +186,9 @@ sealed class ActiveLookOperation {
         )
     }
 
+    /**
+     * Delete all user screens from device
+     */
     class DeleteAllScreens : ActiveLookOperation() {
 
         override val commands: Array<ActiveLookCommand>
@@ -170,8 +209,17 @@ sealed class ActiveLookOperation {
         }
     }
 
-    class DisplayScreen(screenId: Int, text: String) : ActiveLookOperation() {
+    /**
+     * Show a screen and if a variable text is defined, it will be displayed
+     *
+     * The device will be cleared before the screen will be shown.
+     *
+     * @param The id of the screen that will be shown
+     * @param text The text that will be displayed if a variable text is defined
+     */
+    class ShowScreen(screenId: Int, text: String = "") : ActiveLookOperation() {
         override val commands: Array<ActiveLookCommand> = arrayOf(
+            ActiveLookCommand.Clear,
             ActiveLookCommand.DisplayLayout(screenId, text)
         )
     }

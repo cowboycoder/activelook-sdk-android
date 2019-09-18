@@ -14,7 +14,7 @@ Check our documentation [here](https://github.com/ActiveLook/sdk-doc).
 
 
 ```groovy
-implementation 'net.activelook.sdk:1.0.0'
+implementation 'net.activelook.sdk:0.0.1'
 ```
 
 ### Initialize the library
@@ -69,12 +69,10 @@ private fun startScanning() {
 ### Display your first screen
 
 ```kotlin
-val screen = Screen.Builder(15 /* Id of the screen */)
-    .padding(15, 15, 15, 15)
-    .addWidget(TextWidget(150, 150, "Hello world!"))
+val screen = Screen.Builder(yourJsonString)
     .build()
 
-sdkInstance.enqueueOperation(ActiveLookOperation.AddScreen(screen, contentResolver))
+sdkInstance.enqueueOperation(ActiveLookOperation.AddScreen(screen))
 
 sdkInstance.enqueueOperation(ActiveLookOperation.DisplayScreen(screen.id))
 ```

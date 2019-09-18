@@ -63,12 +63,11 @@ class OperationsActivity : AppCompatActivity() {
             OperationClick("Add screen") {
                 sdkInstance.enqueueOperation(ActiveLookOperation.ClearScreen)
                 sdkInstance.enqueueOperation(ActiveLookOperation.AddScreen(screen))
-                sdkInstance.enqueueOperation(ActiveLookOperation.DisplayScreen(screen.id, "Dynamic test"))
+                sdkInstance.enqueueOperation(ActiveLookOperation.ShowScreen(screen.id, "Dynamic test"))
             },
-
             OperationClick("Display screen") {
                 sdkInstance.enqueueOperation(ActiveLookOperation.ClearScreen)
-                sdkInstance.enqueueOperation(ActiveLookOperation.DisplayScreen(screen.id, "CHANGED"))
+                sdkInstance.enqueueOperation(ActiveLookOperation.ShowScreen(screen.id, "CHANGED"))
             }
         )
 
