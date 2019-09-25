@@ -38,6 +38,7 @@ internal open class GattSession(
 
     private var gatt: BluetoothGatt? = null
     private var latch: CountDownLatch? = null
+    private var overflowLatch: CountDownLatch? = null
     private var currentResult: Int? = null
     private val notificationHandlers: MutableList<Handler> = mutableListOf(notificationHandler)
 
@@ -54,19 +55,15 @@ internal open class GattSession(
      */
 //    @Synchronized
     fun writeCommandFragment(fragment: ActiveLookCommandFragment): Int {
+        overflowLatch?.await()
         val l = CountDownLatch(1)
+        latch = l
         val success = write(fragment.data)
         if(!success) return -1
-        latch = l
+        Log.d("TEST", "before await")
         l.await()
+        Log.d("TEST", "after await")
         return currentResult ?: -1
-    }
-
-    fun read() {
-        val g = gatt ?: return
-        val service = g.getService(Service.CommandInterface.uuid)
-        val characteristic = service.getCharacteristic(Characteristic.TxServer.uuid)
-        g.readCharacteristic(characteristic)
     }
 
 //    @Synchronized
@@ -76,7 +73,18 @@ internal open class GattSession(
         if(!success) return -1
         latch = l
         l.await()
-        return currentResult ?: -1
+
+    return currentResult ?: -1
+    }
+
+    fun requestFastConnection() {
+        val g = gatt ?: return
+        g.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH)
+    }
+
+    fun requestNormalConnection() {
+        val g = gatt ?: return
+        g.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_BALANCED)
     }
 
     /**
@@ -153,6 +161,9 @@ internal open class GattSession(
             Characteristic.BatteryLevel.uuid -> {
                 val value = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0)
                 val batteryLevel = Notification.BatteryLevel(value)
+
+                Log.d("TEST", "battery: $value")
+
                 for (notificationHandler in notificationHandlers) {
                     val message = notificationHandler.obtainMessage(0, batteryLevel)
                     notificationHandler.sendMessage(message)
@@ -169,6 +180,19 @@ internal open class GattSession(
                 for (notificationHandler in notificationHandlers) {
                     val message = notificationHandler.obtainMessage(0, sentText)
                     notificationHandler.sendMessage(message)
+                }
+            }
+            Characteristic.FlowControl.uuid -> {
+                val intValue =
+                    characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0)
+                val stringValue = characteristic.getStringValue(0)
+
+                Log.d("TEST", "flow: $intValue $stringValue")
+
+                if (intValue == Characteristic.FlowControl.ON) {
+                    overflowLatch?.countDown()
+                } else if (overflowLatch == null) {
+                    overflowLatch = CountDownLatch(1)
                 }
             }
         }

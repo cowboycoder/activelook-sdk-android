@@ -1,6 +1,7 @@
 package net.activelook.sdk.util
 
-internal fun String.toHex() = this.toByteArray().joinToString("") { "%02X".format(it) }
+internal fun String.toHex(length: Int = 2) =
+    this.toByteArray().joinToString("") { "%0${length}X".format(it) }
 
 internal fun Int.toHex(length: Int = 2): String {
     return "%0${length}X".format(this)

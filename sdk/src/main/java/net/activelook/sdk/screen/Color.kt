@@ -1,9 +1,23 @@
 package net.activelook.sdk.screen
 
-class Color(colorHex: String) {
+class Color {
+
     val r: Int
     val g: Int
     val b: Int
+
+    constructor(r: Int, g: Int, b: Int) {
+        this.r = r
+        this.g = g
+        this.b = b
+    }
+
+    constructor(colorHex: String) {
+        val color = parseColor(colorHex)
+        r = getRed(color)
+        g = getGreen(color)
+        b = getBlue(color)
+    }
 
     companion object {
         fun parseColor(colorString: String): Int {
@@ -30,13 +44,6 @@ class Color(colorHex: String) {
         fun getBlue(color: Int): Int {
             return color and 0xFF
         }
-    }
-
-    init {
-        val color = parseColor(colorHex)
-        r = getRed(color)
-        g = getGreen(color)
-        b = getBlue(color)
     }
 
     fun getGrayscale(): Int {

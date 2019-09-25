@@ -2,7 +2,6 @@ package net.activelook.sdk.util
 
 import android.graphics.*
 import android.util.Base64
-import java.io.ByteArrayOutputStream
 import kotlin.math.roundToInt
 
 
@@ -44,9 +43,19 @@ fun Bitmap.toGrayscale(level: Int): Bitmap {
 }
 
 fun Bitmap.toBase64(): String {
-    val byteArrayOutputStream = ByteArrayOutputStream()
-    this.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
-    val byteArray = byteArrayOutputStream.toByteArray()
+    val grayBitmap = mutableListOf<Byte>()
+    for (x in 0 until width) {
+        for (y in 0 until height) {
+            val pixel = this.getPixel(x, y)
+            val red = Color.red(pixel)
+            val green = Color.red(pixel)
+            val blue = Color.red(pixel)
+            val color = net.activelook.sdk.screen.Color(red, green, blue)
+            val gray = color.getGrayscale()
+            grayBitmap += gray.toByte()
+        }
+    }
+    val byteArray = grayBitmap.toByteArray()
     val encoded = Base64.encodeToString(byteArray, Base64.DEFAULT)
     return encoded
 }
