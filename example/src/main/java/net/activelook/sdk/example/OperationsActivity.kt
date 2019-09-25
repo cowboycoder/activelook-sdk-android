@@ -106,7 +106,8 @@ class OperationsActivity : AppCompatActivity() {
                 )
             },
             OperationClick("Add bitmap") {
-                val bitmap = ResourcesCompat.getDrawable(resources, R.drawable.operation_play, null)
+                val bitmap =
+                    ResourcesCompat.getDrawable(resources, R.drawable.ic_refresh_white_24dp, null)
                     ?.toBitmap()
                 if (bitmap != null) {
                     sdkInstance.enqueueOperation(

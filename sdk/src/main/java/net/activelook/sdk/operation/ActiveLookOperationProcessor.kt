@@ -13,6 +13,7 @@ import java.util.concurrent.LinkedBlockingQueue
 
 internal interface ActiveLookOperationCallback {
     fun activeLookOperationSuccess(operation: ActiveLookOperation)
+    fun activeLookNotification(code: Int, message: String)
     fun activeLookOperationError(operation: ActiveLookOperation, errorStatus: Int?, failureCommand: ActiveLookCommand)
 }
 
@@ -32,6 +33,7 @@ internal open class ActiveLookOperationProcessor(
                 lastResults.add(notif.text)
                 latch?.countDown()
                 Log.d("TEST", "got result: ${notif.text}")
+                callback.activeLookNotification(notif.text[0].toInt(), notif.text.substring(1))
             }
         }
         true
@@ -60,7 +62,6 @@ internal open class ActiveLookOperationProcessor(
                         BluetoothGatt.GATT_SUCCESS -> callback.activeLookOperationSuccess(op)
                         else -> callback.activeLookOperationError(op, result.status, command)
                     }
-                    gattSession.read()
                 }
             }
         } catch(e: InterruptedException) {

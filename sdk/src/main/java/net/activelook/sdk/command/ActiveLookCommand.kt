@@ -24,6 +24,8 @@ internal interface NeedPreviousResults {
     fun setPreviousResults(results: List<String>)
 }
 
+internal interface NeedFastConnection
+
 internal sealed class ActiveLookCommand {
 
     abstract val command: String
@@ -137,8 +139,12 @@ internal sealed class ActiveLookCommand {
         override val command: String = "bmplist"
     }
 
-    data class SaveBitmap(val size: Int, val width: Int, val bitmap: String) : ActiveLookCommand() {
-        override val command = "savebmp $size $width 0x${bitmap.toHex()}"
+    data class SaveBitmap(val size: Int, val width: Int) : ActiveLookCommand() {
+        override val command = "savebmp $size $width"
+    }
+
+    data class SaveBitmapData(val data: String) : ActiveLookCommand() {
+        override val command = "0x" + data.toHex()
     }
 
     data class Bitmap(val bitmapNumber: Int, val x: Int, val y: Int) : ActiveLookCommand() {
@@ -165,6 +171,10 @@ internal sealed class ActiveLookCommand {
         object TxServer: Notify(Service.CommandInterface, Characteristic.TxServer) {
             override val command = ""
         }
+
+        object Flow : Notify(Service.CommandInterface, Characteristic.FlowControl) {
+            override val command = ""
+        }
     }
     // endregion Notifications
     // region Layout
@@ -179,7 +189,7 @@ internal sealed class ActiveLookCommand {
 
         override val command: String
             get() {
-                return "savelayout 0x${screen.mapToCommand()}"
+                return "savelayout 0x${screen.mapToLayout(-1)[0].mapToCommand()}"
             }
     }
 

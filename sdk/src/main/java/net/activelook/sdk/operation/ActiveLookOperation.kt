@@ -2,14 +2,15 @@ package net.activelook.sdk.operation
 
 import android.content.ContentResolver
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.graphics.Point
 import android.graphics.Rect
 import android.net.Uri
 import android.provider.MediaStore
 import net.activelook.sdk.command.ActiveLookCommand
 import net.activelook.sdk.screen.Screen
-import net.activelook.sdk.util.toBase64
 import net.activelook.sdk.widget.BitmapWidget
+import org.apache.commons.codec.binary.Base64
 
 sealed class ActiveLookOperation {
 
@@ -26,6 +27,12 @@ sealed class ActiveLookOperation {
         object TxServer: Notify() {
             override val commands: Array<ActiveLookCommand> = arrayOf(
                 ActiveLookCommand.Notify.TxServer
+            )
+        }
+
+        object Flow : Notify() {
+            override val commands: Array<ActiveLookCommand> = arrayOf(
+                ActiveLookCommand.Notify.Flow
             )
         }
     }
@@ -97,13 +104,29 @@ sealed class ActiveLookOperation {
     }
 
     class AddBitmap(private val bitmap: Bitmap) : ActiveLookOperation() {
-        override val commands: Array<ActiveLookCommand> = arrayOf(
-            ActiveLookCommand.SaveBitmap(
-                bitmap.width * bitmap.height,
-                bitmap.width,
-                bitmap.toBase64()
-            )
-        )
+        override val commands: Array<ActiveLookCommand>
+            get() {
+                val grayByteArray = toGrayByteArray(bitmap)
+                val dataList = toBase64(grayByteArray).split("\n")
+
+                var commands = arrayOf<ActiveLookCommand>(
+                    ActiveLookCommand.SaveBitmap(
+                        grayByteArray.size / 2,
+                        bitmap.width
+                    )
+                )
+
+                for (data in dataList) {
+                    if (data.isEmpty()) {
+                        continue
+                    }
+                    commands += ActiveLookCommand.SaveBitmapData(data)
+                }
+
+                commands += ActiveLookCommand.ListBitmaps
+
+                return commands
+            }
     }
 
     object ListBitmaps : ActiveLookOperation() {
@@ -124,12 +147,11 @@ sealed class ActiveLookOperation {
                     for (bitmapWidget in bitmapWidgets) {
                         val bitmap = MediaStore.Images.Media.getBitmap(
                             contentResolver,
-                            Uri.parse(bitmapWidget.source)
+                            Uri.parse(bitmapWidget.sources[0].path)
                         )
                         commands += ActiveLookCommand.SaveBitmap(
                             bitmap.byteCount,
-                            bitmap.width,
-                            bitmap.toBase64()
+                            bitmap.width
                         )
                     }
                 }
@@ -171,5 +193,28 @@ sealed class ActiveLookOperation {
         override val commands: Array<ActiveLookCommand> = arrayOf(
             ActiveLookCommand.DisplayLayout(screenId, text)
         )
+    }
+
+    internal fun toGrayByteArray(bitmap: Bitmap): ByteArray {
+        val grayList = mutableListOf<Byte>()
+        for (x in 0 until bitmap.width) {
+            for (y in 0 until bitmap.height) {
+                val pixel = bitmap.getPixel(x, y)
+                val red = Color.red(pixel)
+                val green = Color.red(pixel)
+                val blue = Color.red(pixel)
+                val color = net.activelook.sdk.screen.Color(red, green, blue)
+                val gray = color.getGrayscale()
+                grayList += gray.toByte()
+            }
+        }
+
+        return grayList.toByteArray()
+    }
+
+    internal fun toBase64(grayByteArray: ByteArray): String {
+        val chunked = Base64.encodeBase64Chunked(grayByteArray)
+        val encoded = String(chunked).filter { it != '\r' }
+        return encoded
     }
 }

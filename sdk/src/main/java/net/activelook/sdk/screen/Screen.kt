@@ -1,8 +1,9 @@
 package net.activelook.sdk.screen
 
 import net.activelook.sdk.Font
+import net.activelook.sdk.layout.Layout
 import net.activelook.sdk.util.Point
-import net.activelook.sdk.util.toHex
+import net.activelook.sdk.widget.BitmapWidget
 import net.activelook.sdk.widget.HasPosition
 import net.activelook.sdk.widget.Widget
 import kotlin.math.max
@@ -29,6 +30,11 @@ class Screen private constructor(
 
         const val HEIGHT = 256
         const val MAX_HEIGHT = HEIGHT - 1
+
+        const val PADDING_LEFT = 30
+        const val PADDING_TOP = 25
+        const val PADDING_RIGHT = 30
+        const val PADDING_BOTTOM = 25
 
         internal const val ID_MIN = 10
         internal const val ID_MAX = 59
@@ -174,39 +180,32 @@ class Screen private constructor(
         }
     }
 
-    internal fun mapToCommand(): String {
-        val x0 = x0
-        val y0 = y0
-        val x1 = x1
-        val y1 = y1
+    internal fun mapToLayout(startId: Int): List<Layout> {
+        val bitmapWidgets = widgets.filterIsInstance<BitmapWidget>()
+        val nbSources = bitmapWidgets.flatMap { it.sources }.size
+        val layouts = mutableListOf<Layout>()
 
-        val textX0 = textPosition.x
-        val textY0 = textPosition.y
-
-        val foregroundColor = foreground
-        val backgroundColor = background
-        val font = this.font.value
-        val textValid = true
-        val textRotation = textOrientation.value
-
-
-
-        var sizeAdditionalCommands = 0
-        val additionalCommandsToAdd = mutableListOf<Widget>()
-        for (additionalCommand in widgets) {
-            if (sizeAdditionalCommands + additionalCommand.getCommandSize() > SIZE_ADDITIONAL_COMMANDS_MAX) {
-                break
-            }
-            additionalCommandsToAdd.add(additionalCommand)
-            sizeAdditionalCommands += additionalCommand.getCommandSize()
+        for (i in 0..nbSources) {
+            val id = startId + i
+            val layout = Layout(
+                startId,
+                x0,
+                y0,
+                x1,
+                y1,
+                foreground,
+                background,
+                font.value,
+                true,
+                textPosition.x,
+                textPosition.y,
+                textOrientation.value,
+                textOpacity,
+                widgets.flatMap { it.mapToLayoutWidget() })
+            layouts += layout
         }
 
-        return "${id.toHex()}${sizeAdditionalCommands.toHex()}" +
-                "${x0.toHex(4)}${y0.toHex()}${x1.toHex(4)}${y1.toHex()}" +
-                "${foregroundColor.toHex()}${backgroundColor.toHex()}${font.toHex()}" +
-                "${textValid.toHex()}${textX0.toHex(4)}${textY0.toHex()}" +
-                "${textRotation.toHex()}${textOpacity.toHex()}" +
-                additionalCommandsToAdd.joinToString(separator = "") { it.command }
+        return layouts
     }
 }
 

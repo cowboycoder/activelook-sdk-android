@@ -8,9 +8,11 @@ data class BitmapWidget(
     override val y: Int,
     val height: Int,
     val width: Int,
-    val source: String,
+    val sources: List<BitmapSource>,
     val grayLevel: Int
 ) : Widget(), HasPosition {
+
+    class BitmapSource(val id: String, val path: String)
 
     override var paddingLeft: Int = 0
     override var paddingTop: Int = 0
@@ -28,12 +30,18 @@ data class BitmapWidget(
 
     }
 
+    fun setActiveBitmap(id: String) {
+        val bitmapId = sources.find { it.id == id }?.id
+    }
+
     override val command: String
         get() {
             val x0 = Screen.MAX_WIDTH - this.paddingLeft - this.x
             val y0 = Screen.MAX_HEIGHT - this.paddingTop - this.y
 
             val bitmapId = -1
+
+
 
             return "${ID_BITMAP.toHex()}${bitmapId.toHex()}${x0.toHex(4)}${y0.toHex(4)}"
         }
