@@ -1,8 +1,5 @@
 package net.activelook.sdk.layout
 
-import net.activelook.sdk.layout.LayoutWidget.Companion.ID_CIRCLE_FILLED
-import net.activelook.sdk.layout.LayoutWidget.Companion.ID_CIRCLE_OUTLINE
-import net.activelook.sdk.layout.LayoutWidget.Companion.ID_COLOR
 import net.activelook.sdk.screen.Screen
 import net.activelook.sdk.util.toHex
 
@@ -68,36 +65,128 @@ internal interface LayoutWidget {
         const val ID_RECTANGLE_FILLED = 8
         const val ID_TEXT = 9
     }
-}
 
-class Color(
-    val color: Int
-) : LayoutWidget {
+    class Bitmap(
+        private val bitmapId: Int,
+        private val x0: Int,
+        private val y0: Int
+    ) : LayoutWidget {
 
-    override fun mapToCommand(): String {
-        return "${ID_COLOR.toHex()}${color.toHex()}"
-    }
-
-}
-
-class Circle(
-    private val isFilled: Boolean,
-    private val x0: Int,
-    private val y0: Int,
-    private val radius: Int
-) : LayoutWidget {
-
-    override fun mapToCommand(): String {
-        val x = Screen.MAX_WIDTH - Screen.PADDING_LEFT - this.x0
-        val y = Screen.MAX_HEIGHT - Screen.PADDING_TOP - this.y0
-
-        val circleId = if (isFilled) {
-            ID_CIRCLE_FILLED
-        } else {
-            ID_CIRCLE_OUTLINE
+        override fun mapToCommand(): String {
+            return "${ID_BITMAP.toHex()}${bitmapId.toHex()}${x0.toHex(4)}${y0.toHex(4)}"
         }
 
-        return "${circleId.toHex()}${x.toHex(4)}${y.toHex(4)}${radius.toHex(4)}"
     }
 
+    class Color(
+        private val color: Int
+    ) : LayoutWidget {
+
+        override fun mapToCommand(): String {
+            return "${ID_COLOR.toHex()}${color.toHex()}"
+        }
+
+    }
+
+    class Circle(
+        private val isFilled: Boolean,
+        private val x0: Int,
+        private val y0: Int,
+        private val radius: Int
+    ) : LayoutWidget {
+
+        override fun mapToCommand(): String {
+            val x = Screen.MAX_WIDTH - this.x0
+            val y = Screen.MAX_HEIGHT - this.y0
+
+            val circleId = if (isFilled) {
+                ID_CIRCLE_FILLED
+            } else {
+                ID_CIRCLE_OUTLINE
+            }
+
+            return "${circleId.toHex()}${x.toHex(4)}${y.toHex(4)}${radius.toHex(4)}"
+        }
+
+    }
+
+    class Rectangle(
+        private val isFilled: Boolean,
+        private val x0: Int,
+        private val y0: Int,
+        private val x1: Int,
+        private val y1: Int
+    ) : LayoutWidget {
+
+        override fun mapToCommand(): String {
+            val x0 = Screen.MAX_WIDTH - this.x0
+            val y0 = Screen.MAX_HEIGHT - this.y0
+            val x1 = Screen.MAX_WIDTH - this.x1
+            val y1 = Screen.MAX_HEIGHT - this.y1
+
+            val rectangleId = if (isFilled) {
+                ID_RECTANGLE_FILLED
+            } else {
+                ID_RECTANGLE_OUTLINE
+            }
+
+            return "${rectangleId.toHex()}${x0.toHex(4)}${y0.toHex(4)}${x1.toHex(4)}${y1.toHex(4)}"
+        }
+
+    }
+
+    class Font(
+        private val fontId: Int
+    ) : LayoutWidget {
+        override fun mapToCommand(): String {
+            return "${ID_FONT.toHex()}${fontId.toHex()}"
+        }
+    }
+
+    class Text(
+        private val x0: Int,
+        private val y0: Int,
+        private val text: String
+    ) : LayoutWidget {
+
+        override fun mapToCommand(): String {
+            val x = Screen.MAX_WIDTH - this.x0
+            val y = Screen.MAX_HEIGHT - this.y0
+
+            return "${ID_TEXT.toHex()}${x.toHex(4)}${y.toHex(4)}${text.length.toHex()}${text.toHex()}"
+        }
+
+    }
+
+    class Line(
+        private val x0: Int,
+        private val y0: Int,
+        private val x1: Int,
+        private val y1: Int
+    ) : LayoutWidget {
+
+        override fun mapToCommand(): String {
+            val x0 = Screen.MAX_WIDTH - this.x0
+            val y0 = Screen.MAX_HEIGHT - this.y0
+            val x1 = Screen.MAX_WIDTH - this.x1
+            val y1 = Screen.MAX_HEIGHT - this.y1
+
+            return "${ID_LINE.toHex()}${x0.toHex(4)}${y0.toHex(4)}${x1.toHex(4)}${y1.toHex(4)}"
+        }
+
+    }
+
+    class Point(
+        private val x: Int,
+        private val y: Int
+    ) : LayoutWidget {
+
+        override fun mapToCommand(): String {
+            val x = Screen.MAX_WIDTH - this.x
+            val y = Screen.MAX_HEIGHT - this.y
+
+            return "${ID_POINT.toHex()}${x.toHex(4)}${y.toHex(4)}"
+        }
+
+    }
 }

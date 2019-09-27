@@ -1,8 +1,7 @@
 package net.activelook.sdk.widget
 
+import net.activelook.sdk.layout.LayoutWidget
 import net.activelook.sdk.screen.Color
-import net.activelook.sdk.screen.Screen
-import net.activelook.sdk.util.toHex
 
 data class LineWidget(
     val x0: Int,
@@ -27,22 +26,16 @@ data class LineWidget(
         paddingBottom = bottom
     }
 
-    override val command: String
-        get() {
-            var command = ""
-            if (color != null) {
-                command += "${ID_COLOR.toHex()}${color.getGrayscale().toHex()}"
-            }
+    override fun mapToLayoutWidget(): List<LayoutWidget> {
+        val widgets = mutableListOf<LayoutWidget>()
 
-            val x0 = Screen.MAX_WIDTH - this.paddingLeft - this.x0
-            val y0 = Screen.MAX_HEIGHT - this.paddingTop - this.y0
-            val x1 = Screen.MAX_WIDTH - this.paddingLeft - this.x1
-            val y1 = Screen.MAX_HEIGHT - this.paddingTop - this.y1
-
-            command += "${ID_LINE.toHex()}${x0.toHex(4)}${y0.toHex(4)}${x1.toHex(4)}${y1.toHex(4)}"
-
-            return command
+        if (color != null) {
+            widgets += LayoutWidget.Font(color.getGrayscale())
         }
 
+        widgets += LayoutWidget.Line(x, y, x1, y1)
+
+        return widgets
+    }
 }
 

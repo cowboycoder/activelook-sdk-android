@@ -1,9 +1,8 @@
 package net.activelook.sdk.widget
 
 import net.activelook.sdk.Font
+import net.activelook.sdk.layout.LayoutWidget
 import net.activelook.sdk.screen.Color
-import net.activelook.sdk.screen.Screen
-import net.activelook.sdk.util.toHex
 
 data class TextWidget(
     override val x: Int,
@@ -25,25 +24,21 @@ data class TextWidget(
         paddingBottom = bottom
     }
 
-    override val command: String
-        get() {
-            var command = ""
-            if (color != null) {
-                command += "${ID_COLOR.toHex()}${color.getGrayscale().toHex()}"
-            }
+    override fun mapToLayoutWidget(): List<LayoutWidget> {
+        val widgets = mutableListOf<LayoutWidget>()
 
-            if (font != null) {
-                command += "${ID_FONT.toHex()}${font.value.toHex()}"
-            }
-
-            val x = Screen.MAX_WIDTH - this.paddingLeft - this.x
-            val y = Screen.MAX_HEIGHT - this.paddingTop - this.y
-
-            command += "${ID_TEXT.toHex()}${x.toHex(4)}${y.toHex(4)}" +
-                    "${text.length.toHex()}${text.toHex()}"
-
-            return command
+        if (color != null) {
+            widgets += LayoutWidget.Font(color.getGrayscale())
         }
+
+        if (font != null) {
+            widgets += LayoutWidget.Font(font.value)
+        }
+
+        widgets += LayoutWidget.Text(x, y, text)
+
+        return widgets
+    }
 
 }
 

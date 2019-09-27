@@ -31,11 +31,6 @@ class Screen private constructor(
         const val HEIGHT = 256
         const val MAX_HEIGHT = HEIGHT - 1
 
-        const val PADDING_LEFT = 30
-        const val PADDING_TOP = 25
-        const val PADDING_RIGHT = 30
-        const val PADDING_BOTTOM = 25
-
         internal const val ID_MIN = 10
         internal const val ID_MAX = 59
         internal const val BACKGROUND_MIN = 0
@@ -180,15 +175,38 @@ class Screen private constructor(
         }
     }
 
-    internal fun mapToLayout(startId: Int): List<Layout> {
+    internal fun mapToLayout(startLayoutId: Int, startBitmapId: Int): List<Layout> {
         val bitmapWidgets = widgets.filterIsInstance<BitmapWidget>()
-        val nbSources = bitmapWidgets.flatMap { it.sources }.size
+
+        var bitmapId = startBitmapId
+        val sources = bitmapWidgets.flatMap { it.sources }
+        val bitmapLayouts = bitmapWidgets.flatMap {
+            it.setStartBitmapId(bitmapId)
+            val widgets = it.mapToLayoutWidget()
+            bitmapId += widgets.size
+            return@flatMap widgets
+        }
+
+        val nbLayouts = if (bitmapWidgets.isEmpty()) {
+            1
+        } else {
+            // NOT TESTED
+            sources.size + bitmapWidgets.size
+        }
+
         val layouts = mutableListOf<Layout>()
 
-        for (i in 0..nbSources) {
-            val id = startId + i
+        for (i in 0..nbLayouts) {
+            val id = startLayoutId + i
+
+            val widgets = if (bitmapLayouts.isNotEmpty()) {
+                widgets.filter { it !is BitmapWidget }.flatMap { it.mapToLayoutWidget() }
+                // TODO Add bitmaps
+            } else {
+                widgets.flatMap { it.mapToLayoutWidget() }
+            }
             val layout = Layout(
-                startId,
+                id,
                 x0,
                 y0,
                 x1,
@@ -201,7 +219,8 @@ class Screen private constructor(
                 textPosition.y,
                 textOrientation.value,
                 textOpacity,
-                widgets.flatMap { it.mapToLayoutWidget() })
+                widgets
+            )
             layouts += layout
         }
 

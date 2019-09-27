@@ -17,15 +17,7 @@ abstract class Widget {
         const val ID_TEXT = 9
     }
 
-    internal abstract val command: String
-
-    internal fun mapToLayoutWidget(): List<LayoutWidget> {
-        return emptyList()
-    }
-
-    internal fun getCommandSize(): Int {
-        return command.length / 2
-    }
+    internal abstract fun mapToLayoutWidget(): List<LayoutWidget>
 
 }
 

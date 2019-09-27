@@ -5,8 +5,6 @@ import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.Point
 import android.graphics.Rect
-import android.net.Uri
-import android.provider.MediaStore
 import net.activelook.sdk.command.ActiveLookCommand
 import net.activelook.sdk.screen.Screen
 import net.activelook.sdk.widget.BitmapWidget
@@ -143,20 +141,38 @@ sealed class ActiveLookOperation {
                 var commands: Array<ActiveLookCommand> = arrayOf()
 
                 val bitmapWidgets = screen.widgets.filterIsInstance<BitmapWidget>()
-                if (bitmapWidgets.isNotEmpty()) {
-                    for (bitmapWidget in bitmapWidgets) {
-                        val bitmap = MediaStore.Images.Media.getBitmap(
-                            contentResolver,
-                            Uri.parse(bitmapWidget.sources[0].path)
-                        )
-                        commands += ActiveLookCommand.SaveBitmap(
-                            bitmap.byteCount,
-                            bitmap.width
-                        )
-                    }
-                }
+//                if (bitmapWidgets.isNotEmpty()) {
+//                    // For each bitmap, we need to send them before to save the layout
+//                    for (bitmapWidget in bitmapWidgets) {
+//                        for (source in bitmapWidget.sources) {
+//                            val bitmap = MediaStore.Images.Media.getBitmap(
+//                                contentResolver,
+//                                Uri.parse(source.path)
+//                            )
+//                            commands += ActiveLookCommand.SaveBitmap(
+//                                bitmap.byteCount,
+//                                bitmap.width
+//                            )
+//
+//
+//                            val grayByteArray = toGrayByteArray(bitmap)
+//                            val dataList = toBase64(grayByteArray).split("\n")
+//
+//                            for (data in dataList) {
+//                                if (data.isEmpty()) {
+//                                    continue
+//                                }
+//                                commands += ActiveLookCommand.SaveBitmapData(data)
+//                            }
+//                        }
+//                    }
+//                }
 
-                commands += ActiveLookCommand.SaveLayout(screen)
+                val layouts = screen.mapToLayout(10, 10)
+
+                for (layout in layouts) {
+                    commands += ActiveLookCommand.SaveLayout(layout)
+                }
 
                 return commands
             }
