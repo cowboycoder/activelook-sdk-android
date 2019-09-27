@@ -1,7 +1,6 @@
 package net.activelook.sdk.widget
 
-import net.activelook.sdk.screen.Screen
-import net.activelook.sdk.util.toHex
+import net.activelook.sdk.layout.LayoutWidget
 
 data class BitmapWidget(
     override val x: Int,
@@ -9,6 +8,7 @@ data class BitmapWidget(
     val height: Int,
     val width: Int,
     val sources: List<BitmapSource>,
+    val default: String,
     val grayLevel: Int
 ) : Widget(), HasPosition {
 
@@ -26,24 +26,26 @@ data class BitmapWidget(
         paddingBottom = bottom
     }
 
-    internal fun setBitmapId(bitmapId: Int) {
+    private var startBitmapId = -1
 
+    internal fun setStartBitmapId(bitmapId: Int) {
+        startBitmapId = bitmapId
     }
 
     fun setActiveBitmap(id: String) {
         val bitmapId = sources.find { it.id == id }?.id
     }
 
-    override val command: String
-        get() {
-            val x0 = Screen.MAX_WIDTH - this.paddingLeft - this.x
-            val y0 = Screen.MAX_HEIGHT - this.paddingTop - this.y
+    override fun mapToLayoutWidget(): List<LayoutWidget> {
+        val widgets = mutableListOf<LayoutWidget>()
 
-            val bitmapId = -1
+        var id = startBitmapId
 
-
-
-            return "${ID_BITMAP.toHex()}${bitmapId.toHex()}${x0.toHex(4)}${y0.toHex(4)}"
+        for (source in sources) {
+            widgets += LayoutWidget.Bitmap(id++, x, y)
         }
+
+        return widgets
+    }
 
 }

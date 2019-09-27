@@ -1,8 +1,7 @@
 package net.activelook.sdk.widget
 
+import net.activelook.sdk.layout.LayoutWidget
 import net.activelook.sdk.screen.Color
-import net.activelook.sdk.screen.Screen
-import net.activelook.sdk.util.toHex
 
 data class PointWidget(
     override val x: Int,
@@ -22,21 +21,16 @@ data class PointWidget(
         paddingBottom = bottom
     }
 
-    override val command: String
-        get() {
-            var command = ""
-            if (color != null) {
-                command += "${ID_COLOR.toHex()}${color.getGrayscale().toHex()}"
-            }
+    override fun mapToLayoutWidget(): List<LayoutWidget> {
+        val widgets = mutableListOf<LayoutWidget>()
 
-            val x = Screen.MAX_WIDTH - this.paddingLeft - this.x
-            val y = Screen.MAX_HEIGHT - this.paddingTop - this.y
-
-
-            command += "${ID_POINT.toHex()}${x.toHex(4)}${y.toHex(4)}"
-
-            return command
+        if (color != null) {
+            widgets += LayoutWidget.Font(color.getGrayscale())
         }
 
+        widgets += LayoutWidget.Point(x, y)
+
+        return widgets
+    }
 }
 

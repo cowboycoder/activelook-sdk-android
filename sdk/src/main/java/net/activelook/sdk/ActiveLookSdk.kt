@@ -151,6 +151,7 @@ class ActiveLookSdk private constructor(private val bleManager: BluetoothManager
     var loadingMode: LoadingMode = LoadingMode.NORMAL
     private val waitingOperations: MutableList<ActiveLookOperation> = mutableListOf()
     private var lastBitmapId = -1
+    private var lastLayoutId = -1
     private val notificationMutex = Semaphore(1)
 
     // endregion Private

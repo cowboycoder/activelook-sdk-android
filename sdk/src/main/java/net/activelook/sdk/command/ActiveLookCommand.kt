@@ -4,7 +4,7 @@ import android.graphics.Point
 import android.graphics.Rect
 import net.activelook.sdk.blemodel.Characteristic
 import net.activelook.sdk.blemodel.Service
-import net.activelook.sdk.screen.Screen
+import net.activelook.sdk.layout.Layout
 import net.activelook.sdk.util.toHex
 import java.nio.charset.Charset
 import kotlin.math.max
@@ -180,16 +180,12 @@ internal sealed class ActiveLookCommand {
     // region Layout
 
     data class SaveLayout(
-        val screen: Screen
-    ) : ActiveLookCommand(), NeedPreviousResults {
-
-        override fun setPreviousResults(results: List<String>) {
-            screen.widgets
-        }
+        val layout: Layout
+    ) : ActiveLookCommand() {
 
         override val command: String
             get() {
-                return "savelayout 0x${screen.mapToLayout(-1)[0].mapToCommand()}"
+                return "savelayout 0x${layout.mapToCommand()}"
             }
     }
 

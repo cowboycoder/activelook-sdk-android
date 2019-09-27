@@ -14,7 +14,6 @@ import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.activity_operations.*
 import kotlinx.android.synthetic.main.list_item_operation.view.*
 import net.activelook.sdk.ActiveLookSdk
-import net.activelook.sdk.LoadingMode
 import net.activelook.sdk.operation.ActiveLookOperation
 import net.activelook.sdk.screen.Color
 import net.activelook.sdk.screen.Screen
@@ -45,6 +44,36 @@ class OperationsActivity : AppCompatActivity() {
             .addWidget(LineWidget(0, 100, 100, 150, Color("#888888")))
             .addWidget(PointWidget(100, 100, Color("#15FF13")))
             .addWidget(RectangleWidget(200, 50, 20, 30, true, Color("#777777")))
+            .addWidget(
+                BitmapWidget(
+                    30,
+                    30,
+                    200,
+                    200,
+                    listOf(BitmapWidget.BitmapSource("refresh", "assets/refresh/png")),
+                    "refresh",
+                    15
+                )
+            )
+            .addWidget(
+                BitmapWidget(
+                    20, 20, 100, 100, listOf(
+                        BitmapWidget.BitmapSource("refresh", "assets/refresh/png"),
+                        BitmapWidget.BitmapSource("refresh", "assets/refresh/png")
+                    ), "refresh", 15
+                )
+            )
+            .addWidget(
+                BitmapWidget(
+                    10,
+                    10,
+                    100,
+                    100,
+                    listOf(BitmapWidget.BitmapSource("refresh", "assets/refresh/png")),
+                    "refresh",
+                    15
+                )
+            )
             .build()
 
 
@@ -84,20 +113,12 @@ class OperationsActivity : AppCompatActivity() {
                     )
                 )
             },
-            OperationSwitch("Set loading mode to lazy", false) {
-                if (it) {
-                    sdkInstance.loadingMode = LoadingMode.LAZY
-                } else {
-                    sdkInstance.loadingMode = LoadingMode.NORMAL
-                }
-            },
-            OperationClick("Save screen") {
-                sdkInstance.enqueueOperation(ActiveLookOperation.AddScreen(screen, contentResolver))
-            },
             OperationClick("Delete screen") {
                 sdkInstance.enqueueOperation(ActiveLookOperation.DeleteScreen(screen.id))
             },
             OperationClick("Display screen") {
+                sdkInstance.enqueueOperation(ActiveLookOperation.ClearScreen)
+                sdkInstance.enqueueOperation(ActiveLookOperation.AddScreen(screen, contentResolver))
                 sdkInstance.enqueueOperation(
                     ActiveLookOperation.DisplayScreen(
                         screen.id,
@@ -110,15 +131,11 @@ class OperationsActivity : AppCompatActivity() {
                     ResourcesCompat.getDrawable(resources, R.drawable.ic_refresh_white_24dp, null)
                     ?.toBitmap()
                 if (bitmap != null) {
+                    sdkInstance.enqueueOperation(ActiveLookOperation.ClearScreen)
                     sdkInstance.enqueueOperation(
                         ActiveLookOperation.AddBitmap(bitmap)
                     )
                 }
-            },
-            OperationClick("List bitmaps") {
-                sdkInstance.enqueueOperation(
-                    ActiveLookOperation.ListBitmaps
-                )
             }
         )
 
