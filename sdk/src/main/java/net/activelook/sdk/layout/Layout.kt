@@ -36,10 +36,13 @@ internal class Layout(
             sizeAdditionalCommands += additionalCommand.getCommandSize()
         }
 
+        val textXOffset = Screen.MAX_WIDTH - this.textX0
+        val textYOffset = Screen.MAX_WIDTH - this.textY0
+
         return "${id.toHex()}${sizeAdditionalCommands.toHex()}" +
                 "${x0.toHex(4)}${y0.toHex()}${x1.toHex(4)}${y1.toHex()}" +
                 "${foregroundColor.toHex()}${backgroundColor.toHex()}${font.toHex()}" +
-                "${textValid.toHex()}${textX0.toHex(4)}${textY0.toHex()}" +
+                "${textValid.toHex()}${textXOffset.toHex(4)}${textYOffset.toHex()}" +
                 "${textRotation.toHex()}${textOpacity.toHex()}" +
                 additionalCommandsToAdd.joinToString(separator = "") { it.mapToCommand() }
     }

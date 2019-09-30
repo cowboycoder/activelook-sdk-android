@@ -11,15 +11,10 @@ import net.activelook.sdk.command.ActiveLookCommand
 import net.activelook.sdk.command.ActiveLookCommandFragment
 import java.util.concurrent.CountDownLatch
 
-// TODO: need handlers to communicate messages for callbacks
 // TODO: ideas -> https://medium.com/@martijn.van.welie/making-android-ble-work-part-3-117d3a8aee23
 // TODO: need to find a solution for concatenating commands with `;`?
 
-internal open class GattSession(
-    val device: BluetoothDevice,
-    private val sessionHandler: Handler,
-    notificationHandler: Handler
-) : BluetoothGattCallback() {
+internal open class GattSession(val device: BluetoothDevice, private val sessionHandler: Handler, notificationHandler: Handler) : BluetoothGattCallback() {
 
     /**
      * Communicates session events to the [sessionHandler]
@@ -53,7 +48,6 @@ internal open class GattSession(
     /**
      * Write an [ActiveLookCommandFragment] to the BLE device
      */
-//    @Synchronized
     fun writeCommandFragment(fragment: ActiveLookCommandFragment): Int {
         overflowLatch?.await()
         val l = CountDownLatch(1)
@@ -66,25 +60,13 @@ internal open class GattSession(
         return currentResult ?: -1
     }
 
-//    @Synchronized
     fun notifyCommand(command: ActiveLookCommand.Notify): Int {
         val l = CountDownLatch(1)
         val success = setNotify(command)
         if(!success) return -1
         latch = l
         l.await()
-
-    return currentResult ?: -1
-    }
-
-    fun requestFastConnection() {
-        val g = gatt ?: return
-        g.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH)
-    }
-
-    fun requestNormalConnection() {
-        val g = gatt ?: return
-        g.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_BALANCED)
+        return currentResult ?: -1
     }
 
     /**
@@ -170,8 +152,7 @@ internal open class GattSession(
                 }
             }
             Characteristic.TxServer.uuid -> {
-                val intValue =
-                    characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0)
+                val intValue = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0)
                 val stringValue = characteristic.getStringValue(0)
                 val sentText = Notification.TxServer(stringValue.toString())
 
@@ -183,8 +164,7 @@ internal open class GattSession(
                 }
             }
             Characteristic.FlowControl.uuid -> {
-                val intValue =
-                    characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0)
+                val intValue = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0)
                 val stringValue = characteristic.getStringValue(0)
 
                 Log.d("TEST", "flow: $intValue $stringValue")
@@ -198,11 +178,7 @@ internal open class GattSession(
         }
     }
 
-    override fun onCharacteristicRead(
-        gatt: BluetoothGatt,
-        characteristic: BluetoothGattCharacteristic,
-        status: Int
-    ) {
+    override fun onCharacteristicRead(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic, status: Int) {
         val value = characteristic.value.map { it.toChar() }.joinToString("")
         Log.d("TEST", "read: $value")
     }
@@ -235,12 +211,11 @@ internal open class GattSession(
         val service = g.getService(Service.CommandInterface.uuid)
         val characteristic = service.getCharacteristic(Characteristic.RxServer.uuid)
         characteristic.value = chunk
-//        characteristic.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
         return g.writeCharacteristic(characteristic)
     }
 
     /**
-     * This enables a notification on the [Characteristic.TxServer] characteristic
+     * This enables a notification on the [BluetoothGattCharacteristic]
      */
     private fun setNotify(notification: ActiveLookCommand.Notify): Boolean {
         val g = gatt ?: return false

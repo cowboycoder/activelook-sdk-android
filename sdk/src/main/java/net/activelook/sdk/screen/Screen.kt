@@ -60,7 +60,8 @@ class Screen private constructor(
         private val widgets: MutableList<Widget> = mutableListOf()
 
         constructor(id: Int) : this() {
-            setId(id)
+            val shifted = id + ID_MIN - 1
+            setId(shifted)
         }
 
         constructor(rawJsonContent: String) : this() {

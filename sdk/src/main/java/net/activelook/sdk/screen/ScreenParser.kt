@@ -4,8 +4,11 @@ import com.squareup.moshi.JsonClass
 import com.squareup.moshi.JsonDataException
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.adapters.PolymorphicJsonAdapterFactory
+import net.activelook.sdk.Font
 import net.activelook.sdk.exception.JsonInvalidException
 import net.activelook.sdk.exception.JsonVersionInvalidException
+import net.activelook.sdk.layout.LayoutWidget
+import net.activelook.sdk.util.Point
 import net.activelook.sdk.widget.*
 
 internal object ScreenParser {
@@ -53,6 +56,16 @@ internal object ScreenParser {
         val builder = Screen.Builder(id)
             .setPadding(paddingLeft, paddingTop, paddingRight, paddingBottom)
 
+        screenJson.textOrigin?.let { origin ->
+            screenJson.textOrientation?.let { orientation ->
+                builder.setText(Point(origin.x, origin.y), orientation, true)
+            }
+        }
+
+        screenJson.foregroundColor?.let { builder.setForegroundColor(it) }
+        screenJson.backgroundColor?.let { builder.setBackgroundColor(it) }
+        screenJson.font?.let { builder.setFont(it) }
+
         for (widget in widgets) {
             builder.addWidget(widget)
         }
@@ -69,6 +82,11 @@ internal object ScreenParser {
         version: Int,
         val id: Int,
         val padding: PaddingJson,
+        val textOrigin: PositionJson?,
+        val textOrientation: Orientation?,
+        val foregroundColor: Int?,
+        val backgroundColor: Int?,
+        val font: Font?,
         val widgets: List<WidgetJson> = emptyList()
     ) : ScreenBaseJson(version)
 
@@ -86,10 +104,8 @@ internal object ScreenParser {
         @JsonClass(generateAdapter = true)
         internal class TextWidgetJson(
             val position: PositionJson,
-            val orientation: Int,
             val color: String,
             val font: String,
-            val size: Int,
             val value: String
         ) : WidgetJson(WidgetType.text) {
 
@@ -187,7 +203,8 @@ internal object ScreenParser {
         circle,
         line,
         point,
-        rectangle
+        rectangle,
+        image
     }
 
     internal enum class Style {

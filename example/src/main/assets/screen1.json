@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "id": 1,
+  "padding": {
+    "left": 0,
+    "top": 0,
+    "right": 0,
+    "bottom": 0
+  },
+  "textOrigin": {
+    "x": 20,
+    "y": 100
+  },
+  "textOrientation": "R4",
+  "foregroundColor": 15,
+  "backgroundColor": 0,
+  "font": "MEDIUM",
+  "widgets": [
+    {
+      "type": "point",
+      "position": {
+        "x": 150,
+        "y": 150
+      },
+      "color": "#FFFFFF"
+    },
+    {
+      "type": "line",
+      "start": {
+        "x": 160,
+        "y": 160
+      },
+      "end": {
+        "x": 50,
+        "y": 170
+      },
+      "color": "#FFFFFF"
+    },
+    {
+      "type": "rectangle",
+      "position": {
+        "x": 250,
+        "y": 250
+      },
+      "height": 12,
+      "width": 12,
+      "color": "#FFFFFF",
+      "style": "filled"
+    },
+    {
+      "type": "circle",
+      "position": {
+        "x": 30,
+        "y": 150
+      },
+      "radius": 20,
+      "color": "#FFFFFF",
+      "style": "filled"
+    }
+  ]
+}

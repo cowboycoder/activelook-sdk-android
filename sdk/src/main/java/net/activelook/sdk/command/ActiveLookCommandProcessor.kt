@@ -46,7 +46,7 @@ internal data class ActiveLookCommandProcessor(private val gattSession: GattSess
                 "TEST",
                 "writing (${(i.toDouble()) / numOfChunks * 100}%):\t${String(chunk)}\tresult: $result"
             )
-            Thread.sleep(1000)
+//            Thread.sleep(1000)
             if(result != BluetoothGatt.GATT_SUCCESS) {
                 return CommandResult(result, fragment)
             }
