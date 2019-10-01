@@ -17,6 +17,7 @@ internal object ScreenParser {
                 .withSubtype(WidgetJson.CircleWidgetJson::class.java, WidgetType.circle.name)
                 .withSubtype(WidgetJson.LineWidgetJson::class.java, WidgetType.line.name)
                 .withSubtype(WidgetJson.PointWidgetJson::class.java, WidgetType.point.name)
+                .withSubtype(WidgetJson.RectangleWidgetJson::class.java, WidgetType.rectangle.name)
         )
         .build()
 
@@ -153,6 +154,27 @@ internal object ScreenParser {
                 )
             }
         }
+
+        @JsonClass(generateAdapter = true)
+        internal class RectangleWidgetJson(
+            val position: PositionJson,
+            val height: Int,
+            val width: Int,
+            val color: String? = null,
+            val style: Style? = Style.filled
+        ) : WidgetJson(WidgetType.text) {
+
+            override fun mapToModel(): Widget {
+                return RectangleWidget(
+                    this.position.x,
+                    this.position.y,
+                    this.height,
+                    this.width,
+                    isFilled = style != Style.outline,
+                    color = color?.let { Color(it) }
+                )
+            }
+        }
     }
 
     internal class PositionJson(
@@ -164,7 +186,8 @@ internal object ScreenParser {
         text,
         circle,
         line,
-        point
+        point,
+        rectangle
     }
 
     internal enum class Style {
