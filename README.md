@@ -10,28 +10,73 @@ Check our documentation [here](https://github.com/ActiveLook/sdk-doc).
 
 # Getting started !
 
-- Import the Android library
+### Import the Android library
 
-```
-implementation 'net.activelook.sdk:0.0.1'
-```
 
-- Initialize the library
-
-```
-Exemple de code
+```groovy
+implementation 'net.activelook.sdk:1.0.0'
 ```
 
-- Pair your ActiveLook Development Kit
+### Initialize the library
+
+```kotlin
+class App : Application {
+    override fun onCreate() {
+        val sdkInstance = ActiveLookSdk.getInstance(appContext)
+    }
+}
 
 ```
-Exemple de code
+
+### Pair your ActiveLook Development Kit
+
+**The ACCESS_COARSE_LOCATION or ACCESS_FINE_LOCATION permission need to be granted before to start scanning.**
+
+```kotlin
+private val scanCallback = object : ActiveLookSdk.ScanningCallback {
+
+    override fun foundDevices(devices: List<BluetoothDevice>) {
+        // Find the device you want
+    }
+
+    override fun scanError(err: ActiveLookSdk.ScanningCallback.Error.ScanFailed) {
+        // Display an error
+    }
+}
+
+private val connectionListener = object : ActiveLookSdk.ConnectionListener {
+    override fun activeLookConnectionEstablished() {
+        // The device is connected
+    }
+
+    override fun activeLookConnectionTerminated(reason: GattClosedReason) {
+        // The device is disconnected
+    }
+}
+
+private fun startScanning() {
+    if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION), REQUEST_ACCESS_COARSE_LOCATION)
+    } else {
+        sdkInstance.connectionListener = connectionListener
+        sdkInstance.startScanning(scanCallback)
+    }
+}
 ```
 
-- Display your first screen
 
-```
-Exemple de code
+
+### Display your first screen
+
+```kotlin
+val screen = Screen.Builder(15 /* Id of the screen */)
+    .padding(15, 15, 15, 15)
+    .addWidget(TextWidget(150, 150, "Hello world!"))
+    .build()
+
+sdkInstance.enqueueOperation(ActiveLookOperation.AddScreen(screen, contentResolver))
+
+sdkInstance.enqueueOperation(ActiveLookOperation.DisplayScreen(screen.id))
 ```
 
 ℹ️ See full example [here](https://github.com/ActiveLook/sdk-android/tree/master/example).
@@ -41,7 +86,7 @@ Exemple de code
 Please contact us at developer@activelook.net
 
 # Licence
-
+```
 Copyright 2019 Microoled
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -55,3 +100,4 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+```
