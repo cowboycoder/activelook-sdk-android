@@ -1,14 +1,12 @@
 package net.activelook.sdk.operation
 
-import android.content.ContentResolver
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.Point
 import android.graphics.Rect
+import android.util.Base64
 import net.activelook.sdk.command.ActiveLookCommand
 import net.activelook.sdk.screen.Screen
-import net.activelook.sdk.widget.BitmapWidget
-import org.apache.commons.codec.binary.Base64
 
 sealed class ActiveLookOperation {
 
@@ -101,7 +99,7 @@ sealed class ActiveLookOperation {
         )
     }
 
-    class AddBitmap(private val bitmap: Bitmap) : ActiveLookOperation() {
+    private class AddBitmap(private val bitmap: Bitmap) : ActiveLookOperation() {
         override val commands: Array<ActiveLookCommand>
             get() {
                 val grayByteArray = toGrayByteArray(bitmap)
@@ -121,8 +119,6 @@ sealed class ActiveLookOperation {
                     commands += ActiveLookCommand.SaveBitmapData(data)
                 }
 
-                commands += ActiveLookCommand.ListBitmaps
-
                 return commands
             }
     }
@@ -133,46 +129,15 @@ sealed class ActiveLookOperation {
         )
     }
 
-    class AddScreen(private val screen: Screen, private val contentResolver: ContentResolver) :
-        ActiveLookOperation() {
+    class AddScreen(private val screen: Screen) : ActiveLookOperation() {
 
         override val commands: Array<ActiveLookCommand>
             get() {
                 var commands: Array<ActiveLookCommand> = arrayOf()
 
-                val bitmapWidgets = screen.widgets.filterIsInstance<BitmapWidget>()
-//                if (bitmapWidgets.isNotEmpty()) {
-//                    // For each bitmap, we need to send them before to save the layout
-//                    for (bitmapWidget in bitmapWidgets) {
-//                        for (source in bitmapWidget.sources) {
-//                            val bitmap = MediaStore.Images.Media.getBitmap(
-//                                contentResolver,
-//                                Uri.parse(source.path)
-//                            )
-//                            commands += ActiveLookCommand.SaveBitmap(
-//                                bitmap.byteCount,
-//                                bitmap.width
-//                            )
-//
-//
-//                            val grayByteArray = toGrayByteArray(bitmap)
-//                            val dataList = toBase64(grayByteArray).split("\n")
-//
-//                            for (data in dataList) {
-//                                if (data.isEmpty()) {
-//                                    continue
-//                                }
-//                                commands += ActiveLookCommand.SaveBitmapData(data)
-//                            }
-//                        }
-//                    }
-//                }
+                val layout = screen.mapToLayout(screen.id, 10)
 
-                val layouts = screen.mapToLayout(10, 10)
-
-                for (layout in layouts) {
-                    commands += ActiveLookCommand.SaveLayout(layout)
-                }
+                commands += ActiveLookCommand.SaveLayout(layout)
 
                 return commands
             }
@@ -229,8 +194,8 @@ sealed class ActiveLookOperation {
     }
 
     internal fun toBase64(grayByteArray: ByteArray): String {
-        val chunked = Base64.encodeBase64Chunked(grayByteArray)
-        val encoded = String(chunked).filter { it != '\r' }
+        val chunked = Base64.encodeToString(grayByteArray, Base64.DEFAULT)
+        val encoded = chunked.filter { it != '\r' }
         return encoded
     }
 }

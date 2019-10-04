@@ -5,7 +5,6 @@ import android.graphics.Rect
 import net.activelook.sdk.blemodel.Characteristic
 import net.activelook.sdk.blemodel.Service
 import net.activelook.sdk.layout.Layout
-import net.activelook.sdk.util.toHex
 import java.nio.charset.Charset
 import kotlin.math.max
 import kotlin.math.min
@@ -144,7 +143,7 @@ internal sealed class ActiveLookCommand {
     }
 
     data class SaveBitmapData(val data: String) : ActiveLookCommand() {
-        override val command = "0x" + data.toHex()
+        override val command = data
     }
 
     data class Bitmap(val bitmapNumber: Int, val x: Int, val y: Int) : ActiveLookCommand() {

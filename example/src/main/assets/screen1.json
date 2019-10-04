@@ -14,7 +14,7 @@
   "textOrientation": "R4",
   "foregroundColor": 15,
   "backgroundColor": 0,
-  "font": "MEDIUM",
+  "font": "medium",
   "widgets": [
     {
       "type": "point",

@@ -59,7 +59,7 @@ class Screen private constructor(
 
         private val widgets: MutableList<Widget> = mutableListOf()
 
-        constructor(id: Int) : this() {
+        internal constructor(id: Int) : this() {
             val shifted = id + ID_MIN - 1
             setId(shifted)
         }
@@ -69,7 +69,7 @@ class Screen private constructor(
             copy(builder)
         }
 
-        fun copy(builder: Builder): Builder {
+        internal fun copy(builder: Builder): Builder {
             setId(builder.id)
             setPadding(
                 builder.paddingLeft,
@@ -91,11 +91,11 @@ class Screen private constructor(
             return this
         }
 
-        private fun setId(id: Int) {
+        internal fun setId(id: Int) {
             this.id = max(min(id, ID_MAX), ID_MIN)
         }
 
-        fun setPadding(left: Int, top: Int, right: Int, bottom: Int): Builder {
+        internal fun setPadding(left: Int, top: Int, right: Int, bottom: Int): Builder {
             this.paddingLeft = left
             this.paddingTop = top
             this.paddingRight = right
@@ -104,44 +104,48 @@ class Screen private constructor(
             return this
         }
 
-        fun addWidget(widget: Widget): Builder {
+        internal fun addWidget(widget: Widget): Builder {
             this.widgets.add(widget)
             return this
         }
 
-        fun setBackgroundColor(color: Int): Builder {
+        internal fun setBackgroundColor(color: Int): Builder {
             this.background = max(min(color, BACKGROUND_MAX), BACKGROUND_MIN)
             return this
         }
 
-        fun setForegroundColor(color: Int): Builder {
+        internal fun setForegroundColor(color: Int): Builder {
             this.foreground = max(min(color, FOREGROUND_MAX), FOREGROUND_MIN)
             return this
         }
 
-        fun setFont(font: Font): Builder {
+        internal fun setFont(font: Font): Builder {
             this.font = font
             return this
         }
 
-        fun setText(position: Point, orientation: Orientation, isVisible: Boolean): Builder {
+        internal fun setText(
+            position: Point,
+            orientation: Orientation,
+            isVisible: Boolean
+        ): Builder {
             this.textPosition = position
             this.textRotation = orientation
             this.textOpacity = isVisible
             return this
         }
 
-        fun setTextPosition(position: Point): Builder {
+        internal fun setTextPosition(position: Point): Builder {
             this.textPosition = position
             return this
         }
 
-        fun setTextOrientation(orientation: Orientation): Builder {
+        internal fun setTextOrientation(orientation: Orientation): Builder {
             this.textRotation = orientation
             return this
         }
 
-        fun setTextVisibility(isVisible: Boolean): Builder {
+        internal fun setTextVisibility(isVisible: Boolean): Builder {
             this.textOpacity = isVisible
             return this
         }
@@ -176,56 +180,26 @@ class Screen private constructor(
         }
     }
 
-    internal fun mapToLayout(startLayoutId: Int, startBitmapId: Int): List<Layout> {
-        val bitmapWidgets = widgets.filterIsInstance<BitmapWidget>()
+    internal fun mapToLayout(startLayoutId: Int, startBitmapId: Int): Layout {
+        val widgets = widgets.filter { it !is BitmapWidget }.flatMap { it.mapToLayoutWidget() }
+        val layout = Layout(
+            startLayoutId,
+            x0,
+            y0,
+            x1,
+            y1,
+            foreground,
+            background,
+            font.value,
+            true,
+            textPosition.x,
+            textPosition.y,
+            textOrientation.value,
+            textOpacity,
+            widgets
+        )
 
-        var bitmapId = startBitmapId
-        val sources = bitmapWidgets.flatMap { it.sources }
-        val bitmapLayouts = bitmapWidgets.flatMap {
-            it.setStartBitmapId(bitmapId)
-            val widgets = it.mapToLayoutWidget()
-            bitmapId += widgets.size
-            return@flatMap widgets
-        }
-
-        val nbLayouts = if (bitmapWidgets.isEmpty()) {
-            1
-        } else {
-            // NOT TESTED
-            sources.size + bitmapWidgets.size
-        }
-
-        val layouts = mutableListOf<Layout>()
-
-        for (i in 0..nbLayouts) {
-            val id = startLayoutId + i
-
-            val widgets = if (bitmapLayouts.isNotEmpty()) {
-                widgets.filter { it !is BitmapWidget }.flatMap { it.mapToLayoutWidget() }
-                // TODO Add bitmaps
-            } else {
-                widgets.flatMap { it.mapToLayoutWidget() }
-            }
-            val layout = Layout(
-                id,
-                x0,
-                y0,
-                x1,
-                y1,
-                foreground,
-                background,
-                font.value,
-                true,
-                textPosition.x,
-                textPosition.y,
-                textOrientation.value,
-                textOpacity,
-                widgets
-            )
-            layouts += layout
-        }
-
-        return layouts
+        return layout
     }
 }
 
