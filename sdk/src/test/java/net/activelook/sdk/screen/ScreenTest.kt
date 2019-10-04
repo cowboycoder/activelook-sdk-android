@@ -11,9 +11,9 @@ class ScreenTest {
 
     @Test
     fun `init screen with just an id`() {
-        val screen = Screen.Builder(15).build()
+        val screen = Screen.Builder(1).build()
 
-        assertEquals(15, screen.id)
+        assertEquals(10, screen.id)
         assertEquals(0, screen.x0)
         assertEquals(0, screen.y0)
         assertEquals(303, screen.x1)
@@ -29,11 +29,11 @@ class ScreenTest {
 
     @Test
     fun `init screen with an id and padding`() {
-        val screen = Screen.Builder(15)
+        val screen = Screen.Builder(1)
             .setPadding(4, 8, 15, 16)
             .build()
 
-        assertEquals(15, screen.id)
+        assertEquals(10, screen.id)
         assertEquals(4, screen.x0)
         assertEquals(8, screen.y0)
         assertEquals(288, screen.x1)
@@ -50,11 +50,11 @@ class ScreenTest {
     @Test
     fun `init screen with an id and a text widget`() {
         val widget = TextWidget(0, 0, "Sample")
-        val screen = Screen.Builder(15)
+        val screen = Screen.Builder(1)
             .addWidget(widget)
             .build()
 
-        assertEquals(15, screen.id)
+        assertEquals(10, screen.id)
         assertEquals(0, screen.x0)
         assertEquals(0, screen.y0)
         assertEquals(303, screen.x1)
@@ -168,7 +168,7 @@ class ScreenTest {
 
     @Test
     fun `init screen with a foreground color`() {
-        val screen = Screen.Builder(10)
+        val screen = Screen.Builder(1)
             .setForegroundColor(7)
             .build()
 
@@ -187,7 +187,7 @@ class ScreenTest {
 
     @Test
     fun `init screen with a wrong foreground color`() {
-        val screen = Screen.Builder(10)
+        val screen = Screen.Builder(1)
             .setForegroundColor(-15)
             .build()
 
@@ -206,7 +206,7 @@ class ScreenTest {
 
     @Test
     fun `init screen with no background color`() {
-        val screen = Screen.Builder(10)
+        val screen = Screen.Builder(1)
             .build()
 
         assertEquals(10, screen.id)
@@ -224,7 +224,7 @@ class ScreenTest {
 
     @Test
     fun `init screen with a background color`() {
-        val screen = Screen.Builder(10)
+        val screen = Screen.Builder(1)
             .setBackgroundColor(7)
             .build()
 
@@ -263,7 +263,7 @@ class ScreenTest {
     @Test
     fun `init screen with a wrong id, padding and a text widget`() {
         val widget = TextWidget(15, 42, "Sample")
-        val screen = Screen.Builder(1)
+        val screen = Screen.Builder(-5)
             .setPadding(23, 42, 4, 8)
             .addWidget(widget)
             .build()
@@ -275,58 +275,4 @@ class ScreenTest {
         assertEquals(247, screen.y1)
         assertEquals(listOf(widget), screen.widgets)
     }
-
-    @Test
-    fun `map a screen to command`() {
-        var screen = Screen.Builder(10)
-            .setPadding(0, 0, 0, 0)
-            .setForegroundColor(15)
-            .setBackgroundColor(0)
-            .setFont(Font.LARGE)
-            .setText(Point(224, 128), Orientation.R4, true)
-            .build()
-
-        assertEquals("0A00000000012FFF0F00030100E0800401", screen.mapToCommand())
-
-        screen = Screen.Builder(10)
-            .setPadding(0, 0, 0, 0)
-            .setForegroundColor(15)
-            .setBackgroundColor(0)
-            .setFont(Font.LARGE)
-            .setText(Point(224, 128), Orientation.R4, true)
-            .addWidget(TextWidget(15, 16, "Test"))
-            .build()
-
-        assertEquals(
-            "0A0A000000012FFF0F00030100E080040109012000EF0454657374",
-            screen.mapToCommand()
-        )
-
-        screen = Screen.Builder(10)
-            .setPadding(0, 0, 0, 0)
-            .setForegroundColor(15)
-            .setBackgroundColor(0)
-            .setFont(Font.LARGE)
-            .setText(Point(224, 128), Orientation.R4, true)
-            .addWidget(TextWidget(15, 16, "Test2"))
-            .addWidget(TextWidget(15, 16, "Test3"))
-            .addWidget(TextWidget(15, 16, "Test4"))
-            .addWidget(TextWidget(15, 16, "Test5"))
-            .addWidget(TextWidget(15, 16, "Test6"))
-            .addWidget(TextWidget(15, 16, "Test7"))
-            .addWidget(TextWidget(15, 16, "Test8"))
-            .addWidget(TextWidget(15, 16, "Test9"))
-            .addWidget(TextWidget(15, 16, "Test10"))
-            .addWidget(TextWidget(15, 16, "Test11"))
-            .addWidget(TextWidget(15, 16, "Test12"))
-            .addWidget(TextWidget(15, 16, "Test13"))
-            .build()
-
-        assertEquals(
-            "0A64000000012FFF0F00030100E080040109012000EF05546573743209012000EF05546573743309012000EF05546573743409012000EF05546573743509012000EF05546573743609012000EF05546573743709012000EF05546573743809012000EF05546573743909012000EF06546573743130",
-            screen.mapToCommand()
-        )
-    }
-
-
 }

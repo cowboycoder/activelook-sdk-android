@@ -46,20 +46,4 @@ class CircleWidgetTest {
         assertEquals(15, circleWidget.paddingRight)
         assertEquals(16, circleWidget.paddingBottom)
     }
-
-    @Test
-    fun `generate command`() {
-        var widget: Widget = CircleWidget(15, 16, 10, true, Color("#FFFFFF"))
-
-        assertEquals("030F02012000EF000A", widget.command)
-
-        widget = CircleWidget(42, 24, 30, false)
-
-        assertEquals("01010500E7001E", widget.command)
-
-        widget = CircleWidget(4, 8, 80)
-
-        assertEquals("02012B00F70050", widget.command)
-    }
-
 }

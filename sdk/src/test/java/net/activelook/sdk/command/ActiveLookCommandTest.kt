@@ -1,5 +1,7 @@
 package net.activelook.sdk.command
 
+import net.activelook.sdk.layout.Layout
+import net.activelook.sdk.layout.LayoutWidget
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -73,16 +75,70 @@ class ActiveLookCommandTest {
 
     @Test
     fun `save layout 10 with no additional command`() {
-        val command = ActiveLookCommand.SaveLayout("0A00000000012FFF0F00030100E0800401")
-        assertEquals("savelayout 0x0A00000000012FFF0F00030100E0800401", command.command)
+        val layout = Layout(10, 0, 0, 303, 255, 15, 0, 3, true, 79, 127, 4, true, emptyList())
+        val command = ActiveLookCommand.SaveLayout(layout)
+        assertEquals(
+            "savelayout 0x0A" +
+                    "00" +
+                    "0000" +
+                    "00" +
+                    "012F" +
+                    "FF" +
+                    "0F" +
+                    "00" +
+                    "03" +
+                    "01" +
+                    "00E0" +
+                    "80" +
+                    "04" +
+                    "01", command.command
+        )
     }
 
     @Test
-    fun `save layout 10 with additional bitmap and text`() {
+    fun `save layout 13 with additional bitmap and text`() {
+        val layout = Layout(
+            13,
+            75,
+            100,
+            195,
+            217,
+            15,
+            0,
+            3,
+            true,
+            130,
+            67,
+            4,
+            false,
+            listOf(
+                LayoutWidget.Font(1),
+                LayoutWidget.Bitmap(4, 228, 155),
+                LayoutWidget.Text(140, 112, "KM/H")
+            )
+        )
+
         val command =
-            ActiveLookCommand.SaveLayout("0D12004B6400C3D90F00030100ADBC040004010004004B00640900A3008F044B4D2F48")
+            ActiveLookCommand.SaveLayout(layout)
         assertEquals(
-            "savelayout 0x0D12004B6400C3D90F00030100ADBC040004010004004B00640900A3008F044B4D2F48",
+            "savelayout 0x" +
+                    "0D" +
+                    "12" +
+                    "004B" +
+                    "64" +
+                    "00C3" +
+                    "D9" +
+                    "0F" +
+                    "00" +
+                    "03" +
+                    "01" +
+                    "00AD" +
+                    "BC" +
+                    "04" +
+                    "00" +
+                    "0401" +
+                    "0004004B0064" +
+                    "0900A3008F044B4D2F48",
             command.command
         )
     }

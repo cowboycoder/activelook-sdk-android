@@ -4,7 +4,7 @@ import net.activelook.sdk.screen.Screen
 import net.activelook.sdk.util.toHex
 
 
-internal class Layout(
+internal data class Layout(
     val id: Int,
     val x0: Int,
     val y0: Int,
@@ -37,7 +37,7 @@ internal class Layout(
         }
 
         val textXOffset = Screen.MAX_WIDTH - this.textX0
-        val textYOffset = Screen.MAX_WIDTH - this.textY0
+        val textYOffset = Screen.MAX_HEIGHT - this.textY0
 
         return "${id.toHex()}${sizeAdditionalCommands.toHex()}" +
                 "${x0.toHex(4)}${y0.toHex()}${x1.toHex(4)}${y1.toHex()}" +
@@ -76,7 +76,9 @@ internal interface LayoutWidget {
     ) : LayoutWidget {
 
         override fun mapToCommand(): String {
-            return "${ID_BITMAP.toHex()}${bitmapId.toHex()}${x0.toHex(4)}${y0.toHex(4)}"
+            val x = Screen.MAX_WIDTH - this.x0
+            val y = Screen.MAX_HEIGHT - this.y0
+            return "${ID_BITMAP.toHex()}${bitmapId.toHex()}${x.toHex(4)}${y.toHex(4)}"
         }
 
     }

@@ -6,14 +6,6 @@ import org.junit.Test
 class WidgetTest {
 
     @Test
-    fun `get command size`() {
-        val widget: Widget =
-            TextWidget(15, 15, "Test")
-
-        assertEquals(widget.command.length / 2, widget.getCommandSize())
-    }
-
-    @Test
     fun `set padding`() {
         val hasPosition: HasPosition =
             TextWidget(15, 15, "Test")
