@@ -5,6 +5,7 @@ import android.graphics.Rect
 import net.activelook.sdk.blemodel.Characteristic
 import net.activelook.sdk.blemodel.Service
 import net.activelook.sdk.layout.Layout
+import net.activelook.sdk.screen.Screen
 import java.nio.charset.Charset
 import kotlin.math.max
 import kotlin.math.min
@@ -117,10 +118,14 @@ internal sealed class ActiveLookCommand {
 
         override val command: String
             get() {
+                val x0 = Screen.MAX_WIDTH - rect.left
+                val y0 = Screen.MAX_HEIGHT - rect.top
+                val x1 = Screen.MAX_WIDTH - rect.right
+                val y1 = Screen.MAX_HEIGHT - rect.bottom
                 if(filled) {
-                    return "rectf ${rect.left} ${rect.top} ${rect.bottom} ${rect.right}"
+                    return "rectf $x0 $y0 $x1 $y1"
                 } else {
-                    return "rect ${rect.left} ${rect.top} ${rect.bottom} ${rect.right}"
+                    return "rect $x0 $y0 $x1 $y1"
                 }
             }
     }

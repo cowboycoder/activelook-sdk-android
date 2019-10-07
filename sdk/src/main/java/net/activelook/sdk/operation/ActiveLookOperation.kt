@@ -37,7 +37,7 @@ sealed class ActiveLookOperation {
         override val commands: Array<ActiveLookCommand> = arrayOf(
             ActiveLookCommand.Clear,
             ActiveLookCommand.Text("Hello, World", Point(264, 216), 4, 2, 15),
-            ActiveLookCommand.Rectangle(Rect(0, 0, 304, 256), false)
+            ActiveLookCommand.Rectangle(Rect(0, 0, 301, 255), false)
 //            ActiveLookCommand.Write.Rectangle(Rect(264, 20, 100, 100), true)
         )
     }

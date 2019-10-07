@@ -210,7 +210,7 @@ class ActiveLookSdk private constructor(private val bleManager: BluetoothManager
         operationProcessor?.enqueueOperation(ActiveLookOperation.Notify.TxServer)
         operationProcessor?.enqueueOperation(ActiveLookOperation.Notify.BatteryLevel)
         operationProcessor?.enqueueOperation(ActiveLookOperation.Notify.Flow)
-        operationProcessor?.enqueueOperation(ActiveLookOperation.ListBitmaps)
+        //operationProcessor?.enqueueOperation(ActiveLookOperation.ListBitmaps)
 
         connectionListener?.activeLookConnectionEstablished()
     }
