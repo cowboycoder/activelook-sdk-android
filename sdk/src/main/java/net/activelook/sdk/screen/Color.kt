@@ -5,9 +5,9 @@ package net.activelook.sdk.screen
  */
 class Color {
 
-    private val r: Int
-    private val g: Int
-    private val b: Int
+    internal val r: Int
+    internal val g: Int
+    internal val b: Int
 
     /**
      * Create a new [Color] with the specified red, green and blue

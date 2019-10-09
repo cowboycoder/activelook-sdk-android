@@ -177,6 +177,7 @@ class ActiveLookOperationTest {
         val commands = operation.commands
 
         val expectedList = arrayOf(
+            ActiveLookCommand.Clear,
             ActiveLookCommand.DisplayLayout(15, "Test")
         )
 
