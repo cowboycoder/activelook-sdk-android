@@ -12,7 +12,7 @@ sealed class ActiveLookOperation {
 
     internal abstract val commands: Array<ActiveLookCommand>
 
-    sealed class Notify: ActiveLookOperation() {
+    internal sealed class Notify : ActiveLookOperation() {
 
         object BatteryLevel: Notify() {
             override val commands: Array<ActiveLookCommand> = arrayOf(
@@ -33,8 +33,11 @@ sealed class ActiveLookOperation {
         }
     }
 
+    /**
+     * Clear the screen then draw a text and a rectangle.
+     */
     object Hello: ActiveLookOperation() {
-        override val commands: Array<ActiveLookCommand> = arrayOf(
+        internal override val commands: Array<ActiveLookCommand> = arrayOf(
             ActiveLookCommand.Clear,
             ActiveLookCommand.Text("Hello, World", Point(264, 216), 4, 2, 15),
             ActiveLookCommand.Rectangle(Rect(0, 0, 301, 255), false)
@@ -43,14 +46,12 @@ sealed class ActiveLookOperation {
     }
 
     /**
-     * Display operation
-     *
-     * Power on or off the screen
+     * Power on or off the screen.
      *
      * @param on if true, power on the screen, else, power off and clear
      */
     class Display(on: Boolean) : ActiveLookOperation() {
-        override val commands: Array<ActiveLookCommand> = if (on) {
+        internal override val commands: Array<ActiveLookCommand> = if (on) {
             arrayOf(ActiveLookCommand.Power(true))
         } else {
             arrayOf(
@@ -61,17 +62,22 @@ sealed class ActiveLookOperation {
     }
 
     /**
-     * Clear the screen
+     * Clear the screen.
      */
     object ClearScreen : ActiveLookOperation() {
 
-        override val commands: Array<ActiveLookCommand> = arrayOf(
+        internal override val commands: Array<ActiveLookCommand> = arrayOf(
             ActiveLookCommand.Clear
         )
     }
 
-    class SetDebug(on: Boolean) : ActiveLookOperation() {
-        override val commands: Array<ActiveLookCommand> = if (on) {
+    /**
+     * Change the debug mode. If the debug mode is enabled, every command sent are returned by the device.
+     *
+     * @param on if true, enabled the debug mode, else, disabled it
+     */
+    internal class SetDebug(on: Boolean) : ActiveLookOperation() {
+        internal override val commands: Array<ActiveLookCommand> = if (on) {
             arrayOf(ActiveLookCommand.Debug(true))
         } else {
             arrayOf(
@@ -80,19 +86,22 @@ sealed class ActiveLookOperation {
         }
     }
 
-    object Version : ActiveLookOperation() {
-        override val commands: Array<ActiveLookCommand> = arrayOf(
+    /**
+     * Get the version number.
+     */
+    internal object Version : ActiveLookOperation() {
+        internal override val commands: Array<ActiveLookCommand> = arrayOf(
             ActiveLookCommand.Version
         )
     }
 
     /**
-     * Active the LED or not
+     * Active the LED or not.
      *
      * @param on if true, power on the LED, else, power off
      */
     class SetLed(on: Boolean) : ActiveLookOperation() {
-        override val commands: Array<ActiveLookCommand> = if (on) {
+        internal override val commands: Array<ActiveLookCommand> = if (on) {
             arrayOf(ActiveLookCommand.Led(true))
         } else {
             arrayOf(
@@ -110,23 +119,23 @@ sealed class ActiveLookOperation {
      * @param autoAdjust Activate or not the ambient light sensor
      */
     class SetBrightness(level: Int, autoAdjust: Boolean) : ActiveLookOperation() {
-        override val commands: Array<ActiveLookCommand> = arrayOf(
+        internal override val commands: Array<ActiveLookCommand> = arrayOf(
             ActiveLookCommand.AmbientLightSensor(autoAdjust),
             ActiveLookCommand.Luminosity(level)
         )
     }
 
     /**
-     * Get the battery level
+     * Display the battery level on the screen
      */
     object GetBattery: ActiveLookOperation() {
-        override val commands: Array<ActiveLookCommand> = arrayOf(
+        internal override val commands: Array<ActiveLookCommand> = arrayOf(
             ActiveLookCommand.BatteryLevel
         )
     }
 
     private class AddBitmap(private val bitmap: Bitmap) : ActiveLookOperation() {
-        override val commands: Array<ActiveLookCommand>
+        internal override val commands: Array<ActiveLookCommand>
             get() {
                 val grayByteArray = toGrayByteArray(bitmap)
                 val dataList = toBase64(grayByteArray).split("\n")
@@ -149,8 +158,11 @@ sealed class ActiveLookOperation {
             }
     }
 
+    /**
+     * Get the list of bitmaps with their id and size
+     */
     object ListBitmaps : ActiveLookOperation() {
-        override val commands: Array<ActiveLookCommand> = arrayOf(
+        internal override val commands: Array<ActiveLookCommand> = arrayOf(
             ActiveLookCommand.ListBitmaps
         )
     }
@@ -162,7 +174,7 @@ sealed class ActiveLookOperation {
      */
     class AddScreen(private val screen: Screen) : ActiveLookOperation() {
 
-        override val commands: Array<ActiveLookCommand>
+        internal override val commands: Array<ActiveLookCommand>
             get() {
                 var commands: Array<ActiveLookCommand> = arrayOf()
 
@@ -181,7 +193,7 @@ sealed class ActiveLookOperation {
      */
     class DeleteScreen(screenId: Int) : ActiveLookOperation() {
 
-        override val commands: Array<ActiveLookCommand> = arrayOf(
+        internal override val commands: Array<ActiveLookCommand> = arrayOf(
             ActiveLookCommand.EraseLayout(screenId)
         )
     }
@@ -191,7 +203,7 @@ sealed class ActiveLookOperation {
      */
     class DeleteAllScreens : ActiveLookOperation() {
 
-        override val commands: Array<ActiveLookCommand>
+        internal override val commands: Array<ActiveLookCommand>
             get() {
                 return IntRange(Screen.ID_MIN, Screen.ID_MAX)
                     .map {
@@ -218,7 +230,7 @@ sealed class ActiveLookOperation {
      * @param text The text that will be displayed if a variable text is defined
      */
     class ShowScreen(screenId: Int, text: String = "") : ActiveLookOperation() {
-        override val commands: Array<ActiveLookCommand> = arrayOf(
+        internal override val commands: Array<ActiveLookCommand> = arrayOf(
             ActiveLookCommand.Clear,
             ActiveLookCommand.DisplayLayout(screenId, text)
         )

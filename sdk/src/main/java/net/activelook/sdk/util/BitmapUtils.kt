@@ -42,7 +42,7 @@ fun Bitmap.toGrayscale(level: Int): Bitmap {
     return mutableBitmap
 }
 
-fun Bitmap.toBase64(): String {
+internal fun Bitmap.toBase64(): String {
     val grayBitmap = mutableListOf<Byte>()
     for (x in 0 until width) {
         for (y in 0 until height) {

@@ -2,10 +2,8 @@ package net.activelook.sdk
 
 import android.Manifest
 import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothGattCallback
 import android.bluetooth.BluetoothManager
 import android.content.Context
-import android.os.Build
 import android.os.Handler
 import android.util.Log
 import androidx.annotation.RequiresPermission
@@ -16,6 +14,7 @@ import net.activelook.sdk.operation.ActiveLookOperationProcessor
 import net.activelook.sdk.scanner.BluetoothScanner
 import net.activelook.sdk.session.GattClosedReason
 import net.activelook.sdk.session.GattSession
+import net.activelook.sdk.util.connectGattCompat
 import java.util.concurrent.Semaphore
 
 class ActiveLookSdk private constructor(private val bleManager: BluetoothManager) {
@@ -33,7 +32,11 @@ class ActiveLookSdk private constructor(private val bleManager: BluetoothManager
         private var INSTANCE: ActiveLookSdk? = null
 
         /**
-         * NOTE: It is not the SDK's job to enable Bluetooth
+         * Get an instance of the SDK.
+         *
+         * **Note: It is not the SDK's job to enable Bluetooth.**
+         *
+         * @param context Context to initialize the SDK
          */
         @JvmStatic
         fun getInstance(context: Context): ActiveLookSdk {
@@ -48,8 +51,11 @@ class ActiveLookSdk private constructor(private val bleManager: BluetoothManager
     // region Scanning
 
     /**
-     * The host application must have ACCESS_COARSE_LOCATION or ACCESS_FINE_LOCATION
-     * runtime permission before calling this method, otherwise nothing will happen
+     * Start scanning devices. The devices fount will be returned in the [ScanningCallback] you provide.
+     *
+     * **Note: The host application must have [Manifest.permission.ACCESS_COARSE_LOCATION] or [Manifest.permission.ACCESS_FINE_LOCATION]
+     * runtime permission before calling this method, otherwise nothing will happen.**
+     * @param callback Callback used to deliver scan results.
      */
     @RequiresPermission(Manifest.permission.BLUETOOTH_ADMIN)
     fun startScanning(callback: ScanningCallback) {
@@ -58,8 +64,10 @@ class ActiveLookSdk private constructor(private val bleManager: BluetoothManager
     }
 
     /**
-     * The host application must have ACCESS_COARSE_LOCATION or ACCESS_FINE_LOCATION
-     * runtime permission before calling this method, otherwise nothing will happen
+     * Stop scanning.
+     *
+     * **Note: The host application must have [Manifest.permission.ACCESS_COARSE_LOCATION] or [Manifest.permission.ACCESS_FINE_LOCATION]
+     * runtime permission before calling this method, otherwise nothing will happen.**
      */
     @RequiresPermission(Manifest.permission.BLUETOOTH_ADMIN)
     fun stopScanning() {
@@ -67,9 +75,23 @@ class ActiveLookSdk private constructor(private val bleManager: BluetoothManager
         scanner = null
     }
 
+    /**
+     * Callback for scan event.
+     */
     interface ScanningCallback {
 
+        /**
+         * Call when a new BLE device is found.
+         *
+         * @param devices List of every BLE devices found, some devices may be out of range
+         */
         fun foundDevices(devices: List<BluetoothDevice>)
+
+        /**
+         * Call when an error appears during the scan
+         *
+         * @param err The reason of the failure
+         */
         fun scanError(err: Error.ScanFailed)
 
         sealed class Error {
@@ -91,13 +113,34 @@ class ActiveLookSdk private constructor(private val bleManager: BluetoothManager
 
     // region Connection
 
+    /**
+     * Listen to connection event
+     */
     interface ConnectionListener {
+        /**
+         * This method will be triggered each time a BLE device is connected.
+         */
         fun activeLookConnectionEstablished()
+
+        /**
+         * This method will be triggered each time a BLE device is disconnected.
+         *
+         * @param reason Reason of the disconnection
+         */
         fun activeLookConnectionTerminated(reason: GattClosedReason)
     }
 
     var connectionListener: ConnectionListener? = null
 
+    /**
+     * Connect a BLE device
+     *
+     * When the device will be connected, the method
+     * [ConnectionListener.activeLookConnectionEstablished] will be triggered.
+     *
+     * @param unused Used only to connect the device
+     * @param device The device to connect
+     */
     fun connect(unused: Context, device: BluetoothDevice) {
 
         enqueueDisconnect(device)
@@ -106,6 +149,15 @@ class ActiveLookSdk private constructor(private val bleManager: BluetoothManager
         device.connectGattCompat(unused, false, currentSession!!)
     }
 
+    /**
+     * Disconnect a BLE device.
+     *
+     * When the device will be disconnect, the method
+     * [ConnectionListener.activeLookConnectionTerminated] will be triggered with the reason of the
+     * disconnection.
+     *
+     * @param device The device to disconnect
+     */
     fun disconnect(device: BluetoothDevice) {
         enqueueDisconnect(device)
     }
@@ -122,6 +174,17 @@ class ActiveLookSdk private constructor(private val bleManager: BluetoothManager
 
     // region Operations
 
+    /**
+     * Add an operation to the queue.
+     *
+     * If the loading mode is set to [LoadingMode.NORMAL], the operation will be executed
+     * when possible. If the loading mode is set to [LoadingMode.LAZY] and
+     * the operation is [ActiveLookOperation.AddScreen],
+     * it will be postponed until a [ActiveLookOperation.ShowScreen] is enqueue.
+     *
+     *
+     * @param operation [ActiveLookOperation] to enqueue
+     */
     fun enqueueOperation(operation: ActiveLookOperation) {
         if (operation is ActiveLookOperation.AddScreen && loadingMode == LoadingMode.LAZY) {
             waitingOperations.add(operation)
@@ -142,13 +205,18 @@ class ActiveLookSdk private constructor(private val bleManager: BluetoothManager
 
     // endregion Operations
 
+    // region Public
+
+    var loadingMode: LoadingMode = LoadingMode.NORMAL
+
+    // endregion Public
+
     // region Private
 
     private var scanner: BluetoothScanner? = null
     internal var currentSession: GattSession? = null
     private var disconnecting = mutableListOf<GattSession>()
     internal var operationProcessor: ActiveLookOperationProcessor? = null
-    var loadingMode: LoadingMode = LoadingMode.NORMAL
     private val waitingOperations: MutableList<ActiveLookOperation> = mutableListOf()
     private var lastBitmapId = -1
     private var lastLayoutId = -1
@@ -225,17 +293,4 @@ class ActiveLookSdk private constructor(private val bleManager: BluetoothManager
     }
 
     // endregion GattSessionListener
-}
-
-enum class LoadingMode {
-    NORMAL,
-    LAZY
-}
-
-internal fun BluetoothDevice.connectGattCompat(unused: Context, autoConnect: Boolean, callback: BluetoothGattCallback) {
-    if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-        connectGatt(unused, autoConnect, callback, BluetoothDevice.TRANSPORT_LE)
-    } else {
-        connectGatt(unused, autoConnect, callback)
-    }
 }

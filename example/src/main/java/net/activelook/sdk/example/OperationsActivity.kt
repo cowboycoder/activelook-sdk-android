@@ -28,6 +28,7 @@ class OperationsActivity : AppCompatActivity() {
     private fun initOperations() {
         val jsonStr = assets.open("screen1.json").bufferedReader().use(BufferedReader::readText)
         val screen = Screen.Builder(jsonStr).build()
+        Screen.WIDTH
 
         val operations = listOf(
 

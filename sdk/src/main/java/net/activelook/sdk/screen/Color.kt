@@ -1,17 +1,27 @@
 package net.activelook.sdk.screen
 
+/**
+ * A representation of a RGB color
+ */
 class Color {
 
-    val r: Int
-    val g: Int
-    val b: Int
+    private val r: Int
+    private val g: Int
+    private val b: Int
 
+    /**
+     * Create a new [Color] with the specified red, green and blue
+     */
     constructor(r: Int, g: Int, b: Int) {
         this.r = r
         this.g = g
         this.b = b
     }
 
+    /**
+     * Parte the color string, and create a new [Color].
+     * Throw [IllegalArgumentException] if the string cannot be parsed.
+     */
     constructor(colorHex: String) {
         val color = parseColor(colorHex)
         r = getRed(color)
@@ -19,8 +29,8 @@ class Color {
         b = getBlue(color)
     }
 
-    companion object {
-        fun parseColor(colorString: String): Int {
+    private companion object {
+        private fun parseColor(colorString: String): Int {
             if (colorString[0] == '#') {
                 // Use a long to avoid rollovers on #ffXXXXXX
                 var color = colorString.substring(1).toLong(16)
@@ -33,19 +43,22 @@ class Color {
             throw IllegalArgumentException("Unknown color")
         }
 
-        fun getRed(color: Int): Int {
+        private fun getRed(color: Int): Int {
             return (color shr 16) and 0xFF
         }
 
-        fun getGreen(color: Int): Int {
+        private fun getGreen(color: Int): Int {
             return (color shr 8) and 0xFF
         }
 
-        fun getBlue(color: Int): Int {
+        private fun getBlue(color: Int): Int {
             return color and 0xFF
         }
     }
 
+    /**
+     * Get a grayscale for this color
+     */
     fun getGrayscale(): Int {
         // https://en.wikipedia.org/wiki/Grayscale#Converting_color_to_grayscale
         val linear = 0.2126f * r + 0.7152f * g + 0.0722f * b
