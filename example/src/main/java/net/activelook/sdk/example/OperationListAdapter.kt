@@ -30,19 +30,10 @@ class OperationListAdapter: ListAdapter<Operation, OperationListAdapter.Operatio
                 is OperationClick -> {
                     hideSwitch()
                     hideSlider()
-
-                    itemView.operationPlay.setOnClickListener { operation.onPlay() }
                 }
                 is OperationSwitch -> {
                     showSwitch()
                     hideSlider()
-
-                    itemView.operationSwitch.isChecked = operation.defaultValue
-
-                    itemView.operationPlay.setOnClickListener {
-                        val isChecked = itemView.operationSwitch.isChecked
-                        operation.onPlay(isChecked)
-                    }
                 }
                 is OperationSliderAndSwitch -> {
                     showSwitch()
@@ -69,14 +60,40 @@ class OperationListAdapter: ListAdapter<Operation, OperationListAdapter.Operatio
                             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
                         }
                     )
+                }
+            }
 
-                    itemView.operationPlay.setOnClickListener {
+            initClickListener(operation)
+        }
+
+        private fun initClickListener(operation: Operation) {
+            val onClick: (View) -> Unit = when (operation) {
+                is OperationClick -> {
+                    {
+                        operation.onPlay()
+                    }
+                }
+                is OperationSwitch -> {
+                    {
+                        val isChecked = itemView.operationSwitch.isChecked
+                        operation.onPlay(isChecked)
+                    }
+                }
+                is OperationSliderAndSwitch -> {
+                    {
                         val progress = itemView.operationSlider.progress + operation.min
                         val isChecked = itemView.operationSwitch.isChecked
                         operation.onPlay(progress, isChecked)
                     }
                 }
+                else -> {
+                    {
+
+                    }
+                }
             }
+
+            itemView.operationPlay.setOnClickListener(onClick)
         }
 
         private fun hideSwitch() {
