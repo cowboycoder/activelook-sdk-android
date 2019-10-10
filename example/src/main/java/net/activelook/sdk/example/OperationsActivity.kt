@@ -6,6 +6,7 @@ import kotlinx.android.synthetic.main.activity_operations.*
 import net.activelook.sdk.ActiveLookSdk
 import net.activelook.sdk.operation.ActiveLookOperation
 import net.activelook.sdk.screen.Screen
+import net.activelook.sdk.session.GattClosedReason
 import java.io.BufferedReader
 
 class OperationsActivity : AppCompatActivity() {
@@ -19,6 +20,15 @@ class OperationsActivity : AppCompatActivity() {
         setContentView(R.layout.activity_operations)
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
+        sdkInstance.connectionListener = object : ActiveLookSdk.ConnectionListener {
+            override fun activeLookConnectionEstablished() {
+            }
+
+            override fun activeLookConnectionTerminated(reason: GattClosedReason) {
+                finish()
+            }
+        }
 
         operationsList.adapter = adapter
 
@@ -62,12 +72,10 @@ class OperationsActivity : AppCompatActivity() {
                 )
             },
             OperationClick("Add screen") {
-                sdkInstance.enqueueOperation(ActiveLookOperation.ClearScreen)
                 sdkInstance.enqueueOperation(ActiveLookOperation.AddScreen(screen))
                 sdkInstance.enqueueOperation(ActiveLookOperation.ShowScreen(screen.id, "Dynamic test"))
             },
             OperationClick("Display screen") {
-                sdkInstance.enqueueOperation(ActiveLookOperation.ClearScreen)
                 sdkInstance.enqueueOperation(ActiveLookOperation.ShowScreen(screen.id, "CHANGED"))
             }
         )
