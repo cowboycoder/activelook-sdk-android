@@ -8,24 +8,20 @@ import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.list_item_device.view.*
 import net.activelook.sdk.ActiveLookSdk
 import net.activelook.sdk.session.GattClosedReason
-import net.activelook.sdk.util.toGrayscale
 
+/**
+ * This activity inits the SDK and scans for ActiveLook devices
+ * It handles the Bluetooth / location permission requests
+ */
 class MainActivity : AppCompatActivity() {
 
     companion object {
@@ -59,7 +55,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private var lastClickedDevice: BluetoothDevice? = null
-    private val adapter: DeviceListAdapter = DeviceListAdapter(itemClickListener)
+    private val adapter: MainActivityAdapter = MainActivityAdapter(itemClickListener)
     private var deviceList = listOf<BluetoothDevice>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -68,10 +64,10 @@ class MainActivity : AppCompatActivity() {
 
         list.adapter = adapter
 
-        image.setOnClickListener {
-            val drawable = image.drawable as BitmapDrawable
-            image.setImageBitmap(drawable.bitmap.toGrayscale(16))
-        }
+//        image.setOnClickListener {
+//            val drawable = image.drawable as BitmapDrawable
+//            image.setImageBitmap(drawable.bitmap.toGrayscale(16))
+//        }
 
         sdkInstance.connectionListener = object : ActiveLookSdk.ConnectionListener {
             override fun activeLookConnectionEstablished() {
@@ -80,7 +76,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun activeLookConnectionTerminated(reason: GattClosedReason) {
-                // TODO: ?
+
             }
         }
     }
@@ -142,42 +138,4 @@ class MainActivity : AppCompatActivity() {
     }
 
     // endregion Permissions
-}
-
-class DeviceListAdapter(private val clickListener: (RecyclerView.ViewHolder)->Unit): ListAdapter<BluetoothDevice, DeviceListAdapter.DeviceListViewHolder>(ItemCallback()) {
-
-    public override fun getItem(position: Int): BluetoothDevice {
-        return super.getItem(position)
-    }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DeviceListViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.list_item_device, parent, false)
-        val vh = DeviceListViewHolder(view)
-        view.setOnClickListener { clickListener(vh) }
-        return vh
-    }
-
-    override fun onBindViewHolder(holder: DeviceListViewHolder, position: Int) {
-        val device = getItem(position)
-        holder.bindDevice(device)
-    }
-
-    class DeviceListViewHolder(itemView: View): RecyclerView.ViewHolder(itemView) {
-
-        fun bindDevice(device: BluetoothDevice) {
-            itemView.nameLabel.text = device.name
-            itemView.uuidLabel.text = device.address
-        }
-    }
-
-    class ItemCallback: DiffUtil.ItemCallback<BluetoothDevice>() {
-
-        override fun areItemsTheSame(oldItem: BluetoothDevice, newItem: BluetoothDevice): Boolean {
-            return oldItem.address == newItem.address
-        }
-
-        override fun areContentsTheSame(oldItem: BluetoothDevice, newItem: BluetoothDevice): Boolean {
-            return true
-        }
-    }
 }

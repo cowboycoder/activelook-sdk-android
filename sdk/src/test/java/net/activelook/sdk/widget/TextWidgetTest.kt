@@ -47,21 +47,4 @@ class TextWidgetTest {
         assertEquals(15, textWidget.paddingRight)
         assertEquals(16, textWidget.paddingBottom)
     }
-
-    @Test
-    fun `generate command`() {
-        var textWidget =
-            TextWidget(15, 16, "Test", Font.SMALL, Color("#151413"))
-
-        assertEquals("0301040109012000EF0454657374", textWidget.command)
-
-        textWidget = TextWidget(42, 24, "Test2", Font.LARGE)
-
-        assertEquals("040309010500E7055465737432", textWidget.command)
-
-        textWidget = TextWidget(4, 8, "Test3")
-
-        assertEquals("09012B00F7055465737433", textWidget.command)
-    }
-
 }

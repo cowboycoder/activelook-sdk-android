@@ -1,16 +1,18 @@
 package net.activelook.sdk.widget
 
-import net.activelook.sdk.Font
 import net.activelook.sdk.layout.LayoutWidget
-import net.activelook.sdk.screen.Color
 
-data class TextWidget(
+data class BitmapWidget(
     override val x: Int,
     override val y: Int,
-    val text: String,
-    val font: Font? = null,
-    val color: Color? = null
+    val height: Int,
+    val width: Int,
+    val sources: List<BitmapSource>,
+    val default: String,
+    val grayLevel: Int
 ) : Widget(), HasPosition {
+
+    class BitmapSource(val id: String, val path: String)
 
     override var paddingLeft: Int = 0
     override var paddingTop: Int = 0
@@ -24,21 +26,26 @@ data class TextWidget(
         paddingBottom = bottom
     }
 
+    private var startBitmapId = -1
+
+    internal fun setStartBitmapId(bitmapId: Int) {
+        startBitmapId = bitmapId
+    }
+
+    fun setActiveBitmap(id: String) {
+        val bitmapId = sources.find { it.id == id }?.id
+    }
+
     override fun mapToLayoutWidget(): List<LayoutWidget> {
         val widgets = mutableListOf<LayoutWidget>()
 
-        if (color != null) {
-            widgets += LayoutWidget.Font(color.getGrayscale())
-        }
+        var id = startBitmapId
 
-        if (font != null) {
-            widgets += LayoutWidget.Font(font.value)
+        for (source in sources) {
+            widgets += LayoutWidget.Bitmap(id++, x, y)
         }
-
-        widgets += LayoutWidget.Text(x, y, text)
 
         return widgets
     }
 
 }
-

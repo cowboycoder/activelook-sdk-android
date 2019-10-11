@@ -51,16 +51,4 @@ class LineWidgetTest {
         assertEquals(15, widget.paddingRight)
         assertEquals(16, widget.paddingBottom)
     }
-
-    @Test
-    fun `generate command`() {
-        var widget: Widget = LineWidget(15, 16, 10, 142, Color("#888888"))
-
-        assertEquals("030805012000EF01250071", widget.command)
-
-        widget = LineWidget(4, 8, 80, 70)
-
-        assertEquals("05012B00F700DF00B9", widget.command)
-    }
-
 }

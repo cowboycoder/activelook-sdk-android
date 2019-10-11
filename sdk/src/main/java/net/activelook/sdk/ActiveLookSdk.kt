@@ -16,6 +16,7 @@ import net.activelook.sdk.operation.ActiveLookOperationProcessor
 import net.activelook.sdk.scanner.BluetoothScanner
 import net.activelook.sdk.session.GattClosedReason
 import net.activelook.sdk.session.GattSession
+import java.util.concurrent.Semaphore
 
 class ActiveLookSdk private constructor(private val bleManager: BluetoothManager) {
 
@@ -149,6 +150,9 @@ class ActiveLookSdk private constructor(private val bleManager: BluetoothManager
     internal var operationProcessor: ActiveLookOperationProcessor? = null
     var loadingMode: LoadingMode = LoadingMode.NORMAL
     private val waitingOperations: MutableList<ActiveLookOperation> = mutableListOf()
+    private var lastBitmapId = -1
+    private var lastLayoutId = -1
+    private val notificationMutex = Semaphore(1)
 
     // endregion Private
 
@@ -186,11 +190,27 @@ class ActiveLookSdk private constructor(private val bleManager: BluetoothManager
                 override fun activeLookOperationError(operation: ActiveLookOperation, errorStatus: Int?, failureCommand: ActiveLookCommand) {
                     // TODO: signal to client
                 }
+
+                override fun activeLookNotification(code: Int, message: String) {
+                    notificationMutex.acquire()
+                    Log.d("TEST", "code: $code, message: $message")
+                    if (code == 3) {
+                        val regexLayout = """#(\d+) (\d+) x (\d+)""".toRegex()
+                        val result = regexLayout.find(message)
+                        val layoutId = result?.groupValues?.get(1)?.toIntOrNull() ?: return
+                        if (layoutId > lastBitmapId) {
+                            lastBitmapId = layoutId
+                        }
+                    }
+                    notificationMutex.release()
+                }
             }
         )
 
         operationProcessor?.enqueueOperation(ActiveLookOperation.Notify.TxServer)
         operationProcessor?.enqueueOperation(ActiveLookOperation.Notify.BatteryLevel)
+        operationProcessor?.enqueueOperation(ActiveLookOperation.Notify.Flow)
+        operationProcessor?.enqueueOperation(ActiveLookOperation.ListBitmaps)
 
         connectionListener?.activeLookConnectionEstablished()
     }
@@ -201,6 +221,7 @@ class ActiveLookSdk private constructor(private val bleManager: BluetoothManager
             currentSession = null
         }
         disconnecting.remove(gattSession)
+        lastBitmapId = -1
     }
 
     // endregion GattSessionListener

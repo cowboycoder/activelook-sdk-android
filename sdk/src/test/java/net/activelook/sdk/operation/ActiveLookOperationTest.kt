@@ -135,13 +135,13 @@ class ActiveLookOperationTest {
 
     @Test
     fun `add screen`() {
-        val screen = Screen.Builder(15)
+        val screen = Screen.Builder(1)
             .build()
         val operation: ActiveLookOperation = ActiveLookOperation.AddScreen(screen)
         val commands = operation.commands
 
         val expectedList = arrayOf(
-            ActiveLookCommand.SaveLayout(screen.mapToCommand())
+            ActiveLookCommand.SaveLayout(screen.mapToLayout(10, 10))
         )
 
         assertArrayEquals(expectedList, commands)

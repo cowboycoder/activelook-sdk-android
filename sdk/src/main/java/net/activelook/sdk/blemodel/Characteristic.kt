@@ -29,5 +29,10 @@ internal sealed class Characteristic(private val baseUuid: BaseUUID) {
     // region Command Interface Service
     object RxServer: Characteristic(BaseUUID(UUID.fromString("0783b03e-8535-b5a0-7140-a304d2495cbA")))  // write
     object TxServer: Characteristic(BaseUUID(UUID.fromString("0783b03e-8535-b5a0-7140-a304d2495cb8")))  // read, notify
+    object FlowControl :
+        Characteristic(BaseUUID(UUID.fromString("0783b03e-8535-b5a0-7140-a304d2495cb9"))) {  // write, notify
+        const val ON = 0x01
+        const val OFF = 0x02
+    }
     // endregion Command Interface Service
 }

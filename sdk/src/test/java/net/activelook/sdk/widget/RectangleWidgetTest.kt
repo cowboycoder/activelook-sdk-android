@@ -45,20 +45,4 @@ class RectangleWidgetTest {
         assertEquals(15, widget.paddingRight)
         assertEquals(16, widget.paddingBottom)
     }
-
-    @Test
-    fun `generate command`() {
-        var widget: Widget = RectangleWidget(15, 16, 20, 30, true, Color("#151413"))
-
-        assertEquals("030108012000EF010200DB", widget.command)
-
-        widget = RectangleWidget(42, 24, 15, 35, false)
-
-        assertEquals("07010500E700E200D8", widget.command)
-
-        widget = RectangleWidget(4, 8, 28, 65)
-
-        assertEquals("08012B00F700EA00DB", widget.command)
-    }
-
 }

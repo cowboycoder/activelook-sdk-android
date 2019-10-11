@@ -1,5 +1,7 @@
 package net.activelook.sdk.widget
 
+import net.activelook.sdk.layout.LayoutWidget
+
 abstract class Widget {
 
     protected companion object {
@@ -15,11 +17,7 @@ abstract class Widget {
         const val ID_TEXT = 9
     }
 
-    internal abstract val command: String
-
-    internal fun getCommandSize(): Int {
-        return command.length / 2
-    }
+    internal abstract fun mapToLayoutWidget(): List<LayoutWidget>
 
 }
 

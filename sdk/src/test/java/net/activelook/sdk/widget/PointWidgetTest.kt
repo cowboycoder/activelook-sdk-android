@@ -39,16 +39,4 @@ class PointWidgetTest {
         assertEquals(15, widget.paddingRight)
         assertEquals(16, widget.paddingBottom)
     }
-
-    @Test
-    fun `generate command`() {
-        var widget: Widget = PointWidget(15, 16, Color("#555555"))
-
-        assertEquals("030506012000EF", widget.command)
-
-        widget = PointWidget(4, 8)
-
-        assertEquals("06012B00F7", widget.command)
-    }
-
 }
