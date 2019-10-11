@@ -1,6 +1,7 @@
-package net.activelook.sdk.screen
+package net.activelook.sdk.widget
 
 import net.activelook.sdk.Font
+import net.activelook.sdk.screen.Color
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -8,7 +9,8 @@ class TextWidgetTest {
 
     @Test
     fun `init TextWidget`() {
-        var textWidget = TextWidget(15, 16, "Test", Font.SMALL, Color("#151413"))
+        var textWidget =
+            TextWidget(15, 16, "Test", Font.SMALL, Color("#151413"))
 
         assertEquals(15, textWidget.x)
         assertEquals(16, textWidget.y)
@@ -48,7 +50,8 @@ class TextWidgetTest {
 
     @Test
     fun `generate command`() {
-        var textWidget = TextWidget(15, 16, "Test", Font.SMALL, Color("#151413"))
+        var textWidget =
+            TextWidget(15, 16, "Test", Font.SMALL, Color("#151413"))
 
         assertEquals("0301040109012000EF0454657374", textWidget.command)
 

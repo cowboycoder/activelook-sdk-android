@@ -6,6 +6,7 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.adapters.PolymorphicJsonAdapterFactory
 import net.activelook.sdk.exception.JsonInvalidException
 import net.activelook.sdk.exception.JsonVersionInvalidException
+import net.activelook.sdk.widget.*
 
 internal object ScreenParser {
 
@@ -13,6 +14,10 @@ internal object ScreenParser {
         .add(
             PolymorphicJsonAdapterFactory.of(WidgetJson::class.java, "type")
                 .withSubtype(WidgetJson.TextWidgetJson::class.java, WidgetType.text.name)
+                .withSubtype(WidgetJson.CircleWidgetJson::class.java, WidgetType.circle.name)
+                .withSubtype(WidgetJson.LineWidgetJson::class.java, WidgetType.line.name)
+                .withSubtype(WidgetJson.PointWidgetJson::class.java, WidgetType.point.name)
+                .withSubtype(WidgetJson.RectangleWidgetJson::class.java, WidgetType.rectangle.name)
         )
         .build()
 
@@ -78,6 +83,7 @@ internal object ScreenParser {
 
         abstract fun mapToModel(): Widget
 
+        @JsonClass(generateAdapter = true)
         internal class TextWidgetJson(
             val position: PositionJson,
             val orientation: Int,
@@ -95,10 +101,81 @@ internal object ScreenParser {
                     color = Color(color)
                 )
             }
+        }
 
+        @JsonClass(generateAdapter = true)
+        internal class CircleWidgetJson(
+            val position: PositionJson,
+            val radius: Int,
+            val color: String? = null,
+            val style: Style? = Style.filled
+        ) : WidgetJson(WidgetType.text) {
+
+            override fun mapToModel(): Widget {
+                return CircleWidget(
+                    this.position.x,
+                    this.position.y,
+                    this.radius,
+                    color = color?.let { Color(it) },
+                    isFilled = style != Style.outline
+                )
+            }
+        }
+
+        @JsonClass(generateAdapter = true)
+        internal class LineWidgetJson(
+            val start: PositionJson,
+            val end: PositionJson,
+            val color: String? = null
+        ) : WidgetJson(WidgetType.text) {
+
+            override fun mapToModel(): Widget {
+                return LineWidget(
+                    this.start.x,
+                    this.start.y,
+                    this.end.x,
+                    this.end.y,
+                    color = color?.let { Color(it) }
+                )
+            }
+        }
+
+        @JsonClass(generateAdapter = true)
+        internal class PointWidgetJson(
+            val position: PositionJson,
+            val color: String? = null
+        ) : WidgetJson(WidgetType.text) {
+
+            override fun mapToModel(): Widget {
+                return PointWidget(
+                    this.position.x,
+                    this.position.y,
+                    color = color?.let { Color(it) }
+                )
+            }
+        }
+
+        @JsonClass(generateAdapter = true)
+        internal class RectangleWidgetJson(
+            val position: PositionJson,
+            val height: Int,
+            val width: Int,
+            val color: String? = null,
+            val style: Style? = Style.filled
+        ) : WidgetJson(WidgetType.text) {
+
+            override fun mapToModel(): Widget {
+                return RectangleWidget(
+                    this.position.x,
+                    this.position.y,
+                    this.height,
+                    this.width,
+                    isFilled = style != Style.outline,
+                    color = color?.let { Color(it) }
+                )
+            }
         }
     }
-
 
     internal class PositionJson(
         val x: Int,
@@ -106,7 +183,16 @@ internal object ScreenParser {
     )
 
     internal enum class WidgetType {
-        text
+        text,
+        circle,
+        line,
+        point,
+        rectangle
+    }
+
+    internal enum class Style {
+        filled,
+        outline
     }
 
 }
