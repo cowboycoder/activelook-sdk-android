@@ -14,7 +14,7 @@ Check our documentation [here](https://github.com/ActiveLook/sdk-doc).
 
 
 ```groovy
-implementation 'net.activelook.sdk:0.0.1'
+implementation 'net.activelook.sdk:0.1.0'
 ```
 
 ### Initialize the library
