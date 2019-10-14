@@ -11,7 +11,7 @@ apply plugin: 'jacoco-android'
 apply plugin: 'org.jetbrains.dokka-android'
 
 project.group = "net.activelook.sdk"
-project.version = "0.0.1"
+project.version = "0.1.0"
 
 project.ext.name = "activelook-android-sdk"
 project.ext.artifactId = "activelook-android-sdk"
