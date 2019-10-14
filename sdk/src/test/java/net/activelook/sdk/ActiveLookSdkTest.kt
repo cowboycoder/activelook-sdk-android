@@ -42,7 +42,7 @@ class ActiveLookSdkTest {
 
         val screen = Screen.Builder(10).build()
         val addScreenOperation = ActiveLookOperation.AddScreen(screen)
-        val displayScreenOperation = ActiveLookOperation.DisplayScreen(screen.id, "Test")
+        val displayScreenOperation = ActiveLookOperation.ShowScreen(screen.id, "Test")
 
         every { processor.enqueueOperation(any()) } returns Unit
 
@@ -76,7 +76,7 @@ class ActiveLookSdkTest {
 
         val screen = Screen.Builder(10).build()
         val addScreenOperation = ActiveLookOperation.AddScreen(screen)
-        val displayScreenOperation = ActiveLookOperation.DisplayScreen(screen.id, "Test")
+        val displayScreenOperation = ActiveLookOperation.ShowScreen(screen.id, "Test")
 
         every { processor.enqueueOperation(any()) } returns Unit
 

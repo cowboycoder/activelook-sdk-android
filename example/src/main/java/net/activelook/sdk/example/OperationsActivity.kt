@@ -28,6 +28,7 @@ class OperationsActivity : AppCompatActivity() {
     private fun initOperations() {
         val jsonStr = assets.open("screen1.json").bufferedReader().use(BufferedReader::readText)
         val screen = Screen.Builder(jsonStr).build()
+        Screen.WIDTH
 
         val operations = listOf(
 
@@ -63,12 +64,11 @@ class OperationsActivity : AppCompatActivity() {
             OperationClick("Add screen") {
                 sdkInstance.enqueueOperation(ActiveLookOperation.ClearScreen)
                 sdkInstance.enqueueOperation(ActiveLookOperation.AddScreen(screen))
-                sdkInstance.enqueueOperation(ActiveLookOperation.DisplayScreen(screen.id, "Dynamic test"))
+                sdkInstance.enqueueOperation(ActiveLookOperation.ShowScreen(screen.id, "Dynamic test"))
             },
-
             OperationClick("Display screen") {
                 sdkInstance.enqueueOperation(ActiveLookOperation.ClearScreen)
-                sdkInstance.enqueueOperation(ActiveLookOperation.DisplayScreen(screen.id, "CHANGED"))
+                sdkInstance.enqueueOperation(ActiveLookOperation.ShowScreen(screen.id, "CHANGED"))
             }
         )
 

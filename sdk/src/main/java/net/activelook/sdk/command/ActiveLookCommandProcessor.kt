@@ -7,7 +7,7 @@ import net.activelook.sdk.session.GattSession
 import kotlin.math.ceil
 import kotlin.math.min
 
-data class CommandResult(val status: Int, val failingFragment: ActiveLookCommandFragment?)
+internal data class CommandResult(val status: Int, val failingFragment: ActiveLookCommandFragment?)
 
 internal data class ActiveLookCommandProcessor(private val gattSession: GattSession) {
 

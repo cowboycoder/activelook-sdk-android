@@ -16,10 +16,6 @@ class CircleWidgetTest {
         assertEquals(10, circleWidget.radius)
         assertEquals(true, circleWidget.isFilled)
         assertEquals(Color("#151413"), circleWidget.color)
-        assertEquals(0, circleWidget.paddingLeft)
-        assertEquals(0, circleWidget.paddingTop)
-        assertEquals(0, circleWidget.paddingRight)
-        assertEquals(0, circleWidget.paddingBottom)
 
         circleWidget = CircleWidget(42, 24, 30, false)
 
@@ -28,22 +24,13 @@ class CircleWidgetTest {
         assertEquals(30, circleWidget.radius)
         assertEquals(false, circleWidget.isFilled)
         assertEquals(null, circleWidget.color)
-        assertEquals(0, circleWidget.paddingLeft)
-        assertEquals(0, circleWidget.paddingTop)
-        assertEquals(0, circleWidget.paddingRight)
-        assertEquals(0, circleWidget.paddingBottom)
 
         circleWidget = CircleWidget(4, 8, 80)
-        circleWidget.setPadding(4, 8, 15, 16)
 
         assertEquals(4, circleWidget.x)
         assertEquals(8, circleWidget.y)
         assertEquals(80, circleWidget.radius)
         assertEquals(true, circleWidget.isFilled)
         assertEquals(null, circleWidget.color)
-        assertEquals(4, circleWidget.paddingLeft)
-        assertEquals(8, circleWidget.paddingTop)
-        assertEquals(15, circleWidget.paddingRight)
-        assertEquals(16, circleWidget.paddingBottom)
     }
 }

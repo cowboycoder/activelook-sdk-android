@@ -173,10 +173,11 @@ class ActiveLookOperationTest {
 
     @Test
     fun `display screen`() {
-        val operation: ActiveLookOperation = ActiveLookOperation.DisplayScreen(15, "Test")
+        val operation: ActiveLookOperation = ActiveLookOperation.ShowScreen(15, "Test")
         val commands = operation.commands
 
         val expectedList = arrayOf(
+            ActiveLookCommand.Clear,
             ActiveLookCommand.DisplayLayout(15, "Test")
         )
 

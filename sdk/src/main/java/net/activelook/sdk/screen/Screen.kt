@@ -4,31 +4,82 @@ import net.activelook.sdk.Font
 import net.activelook.sdk.layout.Layout
 import net.activelook.sdk.util.Point
 import net.activelook.sdk.widget.BitmapWidget
-import net.activelook.sdk.widget.HasPosition
 import net.activelook.sdk.widget.Widget
 import kotlin.math.max
 import kotlin.math.min
 
+/**
+ * A representation of a view that can display different [Widget]s
+ * like text, circle, rectangle, etc.
+ */
 class Screen private constructor(
+    /**
+     * Id of the screen, starts with 10
+     */
     val id: Int,
+    /**
+     * Left padding
+     */
     val x0: Int,
+    /**
+     * Top padding
+     */
     val y0: Int,
+    /**
+     * Right padding
+     */
     val x1: Int,
+    /**
+     * Bottom padding
+     */
     val y1: Int,
+    /**
+     * Foreground color
+     */
     val foreground: Int,
+    /**
+     * Background color
+     */
     val background: Int,
+    /**
+     * Font used
+     */
     val font: Font,
+    /**
+     * Position of the variable text
+     */
     val textPosition: Point,
+    /**
+     * Orientation of every text
+     */
     val textOrientation: Orientation,
+    /**
+     * Opacity of the text
+     */
     val textOpacity: Boolean,
+    /**
+     * Additional widgets
+     */
     val widgets: List<Widget>
 ) {
 
     companion object {
+        /**
+         * Width of the screen
+         */
         const val WIDTH = 304
+        /**
+         * Maximum width possible
+         */
         const val MAX_WIDTH = WIDTH - 1
 
+        /**
+         * Height of the screen
+         */
         const val HEIGHT = 256
+        /**
+         * Maximum height possible
+         */
         const val MAX_HEIGHT = HEIGHT - 1
 
         internal const val ID_MIN = 10
@@ -64,6 +115,13 @@ class Screen private constructor(
             setId(shifted)
         }
 
+        /**
+         * Create a Builder with property initialized with values from the JSON.
+         *
+         * If the version of the JSON is invalid, it will throw a `JsonVersionInvalidException`.
+         *
+         * If there are mission or misspelled properties, it will throw a `JsonInvalidException`.
+         */
         constructor(rawJsonContent: String) : this() {
             val builder = ScreenParser.parse(rawJsonContent)
             copy(builder)
@@ -150,18 +208,15 @@ class Screen private constructor(
             return this
         }
 
+        /**
+         * Build a [screen][Screen] with the arguments supplied to this builder.
+         */
         fun build(): Screen {
             val x0 = paddingLeft
             val y0 = paddingTop
 
             val x1 = MAX_WIDTH - paddingRight
             val y1 = MAX_HEIGHT - paddingBottom
-
-            for (widget in widgets) {
-                if (widget is HasPosition) {
-                    widget.setPadding(paddingLeft, paddingTop, paddingRight, paddingBottom)
-                }
-            }
 
             return Screen(
                 id,
@@ -181,7 +236,8 @@ class Screen private constructor(
     }
 
     internal fun mapToLayout(startLayoutId: Int, startBitmapId: Int): Layout {
-        val widgets = widgets.filter { it !is BitmapWidget }.flatMap { it.mapToLayoutWidget() }
+        val widgets =
+            widgets.filter { it !is BitmapWidget }.flatMap { it.mapToLayoutWidget(x0, y0) }
         val layout = Layout(
             startLayoutId,
             x0,

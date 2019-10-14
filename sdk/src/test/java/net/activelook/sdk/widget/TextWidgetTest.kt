@@ -17,10 +17,6 @@ class TextWidgetTest {
         assertEquals("Test", textWidget.text)
         assertEquals(Font.SMALL, textWidget.font)
         assertEquals(Color("#151413"), textWidget.color)
-        assertEquals(0, textWidget.paddingLeft)
-        assertEquals(0, textWidget.paddingTop)
-        assertEquals(0, textWidget.paddingRight)
-        assertEquals(0, textWidget.paddingBottom)
 
         textWidget = TextWidget(42, 24, "Test2", Font.LARGE)
 
@@ -29,22 +25,13 @@ class TextWidgetTest {
         assertEquals("Test2", textWidget.text)
         assertEquals(Font.LARGE, textWidget.font)
         assertEquals(null, textWidget.color)
-        assertEquals(0, textWidget.paddingLeft)
-        assertEquals(0, textWidget.paddingTop)
-        assertEquals(0, textWidget.paddingRight)
-        assertEquals(0, textWidget.paddingBottom)
 
         textWidget = TextWidget(4, 8, "Test3")
-        textWidget.setPadding(4, 8, 15, 16)
 
         assertEquals(4, textWidget.x)
         assertEquals(8, textWidget.y)
         assertEquals("Test3", textWidget.text)
         assertEquals(null, textWidget.font)
         assertEquals(null, textWidget.color)
-        assertEquals(4, textWidget.paddingLeft)
-        assertEquals(8, textWidget.paddingTop)
-        assertEquals(15, textWidget.paddingRight)
-        assertEquals(16, textWidget.paddingBottom)
     }
 }

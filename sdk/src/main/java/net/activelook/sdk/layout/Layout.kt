@@ -69,7 +69,7 @@ internal interface LayoutWidget {
         const val ID_TEXT = 9
     }
 
-    class Bitmap(
+    data class Bitmap(
         private val bitmapId: Int,
         private val x0: Int,
         private val y0: Int
@@ -83,7 +83,7 @@ internal interface LayoutWidget {
 
     }
 
-    class Color(
+    data class Color(
         private val color: Int
     ) : LayoutWidget {
 
@@ -93,7 +93,7 @@ internal interface LayoutWidget {
 
     }
 
-    class Circle(
+    data class Circle(
         private val isFilled: Boolean,
         private val x0: Int,
         private val y0: Int,
@@ -115,7 +115,7 @@ internal interface LayoutWidget {
 
     }
 
-    class Rectangle(
+    data class Rectangle(
         private val isFilled: Boolean,
         private val x0: Int,
         private val y0: Int,
@@ -140,7 +140,7 @@ internal interface LayoutWidget {
 
     }
 
-    class Font(
+    data class Font(
         private val fontId: Int
     ) : LayoutWidget {
         override fun mapToCommand(): String {
@@ -148,7 +148,7 @@ internal interface LayoutWidget {
         }
     }
 
-    class Text(
+    data class Text(
         private val x0: Int,
         private val y0: Int,
         private val text: String
@@ -163,7 +163,7 @@ internal interface LayoutWidget {
 
     }
 
-    class Line(
+    data class Line(
         private val x0: Int,
         private val y0: Int,
         private val x1: Int,
@@ -181,7 +181,7 @@ internal interface LayoutWidget {
 
     }
 
-    class Point(
+    data class Point(
         private val x: Int,
         private val y: Int
     ) : LayoutWidget {

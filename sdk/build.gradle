@@ -1,13 +1,14 @@
 plugins {
     id "com.jfrog.bintray" version "1.8.4"
     id 'maven-publish'
-    id 'org.jetbrains.dokka' version '0.9.18'
+    id "org.jlleitschuh.gradle.ktlint" version "9.0.0"
 }
 
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'jacoco-android'
+apply plugin: 'org.jetbrains.dokka-android'
 
 project.group = "net.activelook.sdk"
 project.version = "0.0.1"
@@ -77,3 +78,7 @@ jacoco {
 
 apply from: './maven.gradle'
 apply from: './bintray.gradle'
+
+ktlint {
+    android = true
+}
