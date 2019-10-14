@@ -1,12 +1,12 @@
 package net.activelook.sdk.operation
 
-import android.graphics.Bitmap
-import android.graphics.Color
-import android.graphics.Point
-import android.graphics.Rect
+import android.graphics.*
 import android.util.Base64
 import net.activelook.sdk.command.ActiveLookCommand
 import net.activelook.sdk.screen.Screen
+
+private val screens = mutableListOf<Screen>()
+private val dynamicTexts = mutableMapOf<Int, String>()
 
 sealed class ActiveLookOperation {
 
@@ -180,6 +180,8 @@ sealed class ActiveLookOperation {
 
                 val layout = screen.mapToLayout(screen.id, 10)
 
+                screens += screen
+
                 commands += ActiveLookCommand.SaveLayout(layout)
 
                 return commands
@@ -226,14 +228,42 @@ sealed class ActiveLookOperation {
      *
      * The device will be cleared before the screen will be shown.
      *
-     * @param The id of the screen that will be shown
+     * @param screenId The id of the screen that will be shown
      * @param text The text that will be displayed if a variable text is defined
      */
-    class ShowScreen(screenId: Int, text: String = "") : ActiveLookOperation() {
-        internal override val commands: Array<ActiveLookCommand> = arrayOf(
-            ActiveLookCommand.Clear,
-            ActiveLookCommand.DisplayLayout(screenId, text)
-        )
+    class ShowScreen(private val screenId: Int, private val text: String = "") :
+        ActiveLookOperation() {
+        internal override val commands: Array<ActiveLookCommand>
+            get() {
+                var commands = arrayOf<ActiveLookCommand>()
+                val screen = screens.find { it.id == screenId }
+                val previousText = dynamicTexts[screenId]
+
+
+
+                if (screen != null && !previousText.isNullOrEmpty() && previousText != text) {
+                    val textPosition = screen.textPosition
+                    val font = screen.font
+                    val paint = Paint()
+                    val bound = Rect()
+                    paint.textSize = font.size.toFloat()
+                    paint.getTextBounds(previousText, 0, previousText.length, bound)
+                    val x0 = textPosition.x
+                    val y0 = textPosition.y
+                    val x1 = textPosition.x + bound.width()
+                    val y1 = textPosition.y + bound.height()
+                    commands += ActiveLookCommand.Color(0)
+                    commands += ActiveLookCommand.Rectangle(x0, y0, x1, y1, true)
+                }
+
+                dynamicTexts[screenId] = text
+
+                commands += ActiveLookCommand.DisplayLayout(screenId, text)
+
+
+
+                return commands
+            }
     }
 
     internal fun toGrayByteArray(bitmap: Bitmap): ByteArray {

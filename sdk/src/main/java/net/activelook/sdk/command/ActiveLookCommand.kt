@@ -116,6 +116,15 @@ internal sealed class ActiveLookCommand {
     // region Shapes
     class Rectangle(private val rect: Rect, private val filled: Boolean): ActiveLookCommand() {
 
+        constructor(x0: Int, y0: Int, x1: Int, y1: Int, filled: Boolean) : this(
+            Rect(
+                x0,
+                y0,
+                x1,
+                y1
+            ), filled
+        )
+
         override val command: String
             get() {
                 val x0 = Screen.MAX_WIDTH - rect.left
