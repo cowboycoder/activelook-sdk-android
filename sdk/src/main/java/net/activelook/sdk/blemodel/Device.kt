@@ -6,6 +6,7 @@ internal class Device {
 
         @JvmStatic
         val RECOGNIZED_DEVICE_NAMES = arrayOf(
+            "a.look",
             "cobra",
             "microoled"
         )
