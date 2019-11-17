@@ -138,6 +138,21 @@ internal sealed class ActiveLookCommand {
                 }
             }
     }
+
+    class Line(private val from: Point, private val to: Point): ActiveLookCommand() {
+
+        constructor(x0: Int, y0: Int, x1: Int, y1: Int) : this(Point(x0, y0), Point(x1, y1))
+
+        override val command: String
+            get() {
+                val x0 = Screen.MAX_WIDTH - from.x
+                val y0 = Screen.MAX_HEIGHT - from.y
+                val x1 = Screen.MAX_WIDTH - to.x
+                val y1 = Screen.MAX_HEIGHT - to.y
+                return "line $x0 $y0 $x1 $y1"
+            }
+    }
+
     // endregion Shapes
 
     // region Text

@@ -90,6 +90,19 @@ class Screen private constructor(
         internal const val FOREGROUND_MAX = 15
 
         internal const val SIZE_ADDITIONAL_COMMANDS_MAX = 127 - 17
+
+        @JvmStatic
+        fun isOnScreen(point: android.graphics.Point): Boolean {
+            if(point.x < 0)
+                return false
+            if(point.x > MAX_WIDTH)
+                return false
+            if(point.y < 0)
+                return false
+            if(point.y > MAX_HEIGHT)
+                return false
+            return true
+        }
     }
 
     class Builder private constructor() {

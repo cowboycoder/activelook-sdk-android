@@ -45,6 +45,34 @@ sealed class ActiveLookOperation {
         )
     }
 
+    class DrawPath(private val path: ArrayList<Point>) : ActiveLookOperation() {
+
+        internal override val commands: Array<ActiveLookCommand>
+            get() {
+                var commands = arrayOf<ActiveLookCommand>()
+
+                var lastPoint : Point? = null
+                path.forEach {
+                    if(lastPoint != null) {
+                        if(Screen.isOnScreen(lastPoint!!) || Screen.isOnScreen(it)) {
+                            commands += ActiveLookCommand.Line(lastPoint!!, it)
+                        }
+                    }
+                    lastPoint = it
+                }
+
+                return commands
+            }
+    }
+
+    class DrawRect(private val rect: Rect) : ActiveLookOperation() {
+
+        override val commands: Array<ActiveLookCommand>
+            get() {
+                return arrayOf(ActiveLookCommand.Rectangle(rect, false))
+            }
+    }
+
     /**
      * Power on or off the screen.
      *
