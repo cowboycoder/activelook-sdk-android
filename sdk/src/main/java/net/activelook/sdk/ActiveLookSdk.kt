@@ -269,6 +269,12 @@ class ActiveLookSdk private constructor(private val bleManager: BluetoothManager
                         if (layoutId > lastBitmapId) {
                             lastBitmapId = layoutId
                         }
+                    } else if (code == 35) {
+                        val bmpId = message.trim().toInt()
+                        Log.d("TEST", "bitmap saved, id = $bmpId")
+                        if (bmpId > lastBitmapId) {
+                            lastBitmapId = bmpId
+                        }
                     }
                     notificationMutex.release()
                 }
