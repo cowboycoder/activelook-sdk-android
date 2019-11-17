@@ -266,6 +266,21 @@ sealed class ActiveLookOperation {
             }
     }
 
+    class ConfigureGauge(val gaugeNumber: Int, val x: Int, val y: Int, val radius: Int, val radiusInner: Int,
+                         val start: Int, val end: Int, val clockwise: Boolean) : ActiveLookOperation() {
+        override val commands: Array<ActiveLookCommand>
+            get() {
+                return arrayOf(ActiveLookCommand.GaugeConfigure(gaugeNumber, x, y, radius, radiusInner, start, end, clockwise))
+            }
+    }
+
+    class DisplayGauge(val gaugeNumber: Int, val value: Int) : ActiveLookOperation() {
+        override val commands: Array<ActiveLookCommand>
+            get() {
+                return arrayOf(ActiveLookCommand.GaugeValue(gaugeNumber, value))
+            }
+    }
+
     internal fun toGrayByteArray(bitmap: Bitmap): ByteArray {
         val grayList = mutableListOf<Byte>()
         for (x in 0 until bitmap.width) {
