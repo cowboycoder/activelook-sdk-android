@@ -2,8 +2,11 @@ package net.activelook.sdk.operation
 
 import android.graphics.*
 import android.util.Base64
+import android.util.Log
 import net.activelook.sdk.command.ActiveLookCommand
 import net.activelook.sdk.screen.Screen
+import net.activelook.sdk.util.toHex
+import java.util.ArrayList
 
 private val screens = mutableListOf<Screen>()
 private val dynamicTexts = mutableMapOf<Int, String>()
@@ -43,6 +46,14 @@ sealed class ActiveLookOperation {
             ActiveLookCommand.Rectangle(Rect(0, 0, 301, 255), false)
 //            ActiveLookCommand.Write.Rectangle(Rect(264, 20, 100, 100), true)
         )
+    }
+
+    class DrawBitmap(private val bmpId: Int, private val at: Point) : ActiveLookOperation() {
+
+        override val commands: Array<ActiveLookCommand>
+            get() {
+                return arrayOf(ActiveLookCommand.Bitmap(bmpId, at.x, at.y))
+            }
     }
 
     /**
@@ -134,7 +145,7 @@ sealed class ActiveLookOperation {
         )
     }
 
-    private class AddBitmap(private val bitmap: Bitmap) : ActiveLookOperation() {
+    class AddBitmap(private val bitmap: Bitmap) : ActiveLookOperation() {
         internal override val commands: Array<ActiveLookCommand>
             get() {
                 val grayByteArray = toGrayByteArray(bitmap)
@@ -142,7 +153,7 @@ sealed class ActiveLookOperation {
 
                 var commands = arrayOf<ActiveLookCommand>(
                     ActiveLookCommand.SaveBitmap(
-                        grayByteArray.size / 2,
+                        grayByteArray.size,
                         bitmap.width
                     )
                 )
@@ -267,20 +278,33 @@ sealed class ActiveLookOperation {
     }
 
     internal fun toGrayByteArray(bitmap: Bitmap): ByteArray {
+        var line: String = ""
         val grayList = mutableListOf<Byte>()
-        for (x in 0 until bitmap.width) {
-            for (y in 0 until bitmap.height) {
+        var gray: Int = 0
+        for (y in 0 until bitmap.height) {
+            for (x in 0 until bitmap.width) {
                 val pixel = bitmap.getPixel(x, y)
                 val red = Color.red(pixel)
                 val green = Color.red(pixel)
                 val blue = Color.red(pixel)
-                val color = net.activelook.sdk.screen.Color(red, green, blue)
-                val gray = color.getGrayscale()
-                grayList += gray.toByte()
+                if(x % 2 == 0) {
+                    gray = (toGrayScale(red, green, blue) * 16)
+                } else {
+                    gray += (toGrayScale(red, green, blue))
+                    line += gray.toHex(2)
+                    grayList += gray.toByte()
+                }
             }
+            Log.d("BMP", "As Hex: $line")
+            line = ""
         }
 
         return grayList.toByteArray()
+    }
+
+    private fun toGrayScale(r: Int, g: Int, b: Int): Int {
+        val linear = 0.2126f * r + 0.7152f * g + 0.0722f * b
+        return (linear / 17).toInt()
     }
 
     internal fun toBase64(grayByteArray: ByteArray): String {

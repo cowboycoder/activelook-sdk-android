@@ -138,6 +138,7 @@ internal sealed class ActiveLookCommand {
                 }
             }
     }
+
     // endregion Shapes
 
     // region Text
@@ -213,6 +214,25 @@ internal sealed class ActiveLookCommand {
     }
 
     // endregion Layout
+
+    // region gauge
+
+    data class GaugeValue(val gaugeNumber: Int, val value: Int) : ActiveLookCommand() {
+        override val command: String = "gauge $gaugeNumber $value"
+    }
+
+    data class GaugeConfigure(val gaugeNumber: Int, val x: Int, val y: Int, val radius: Int, val radiusInner: Int,
+                              val start: Int, val end: Int, val clockwise: Boolean) : ActiveLookCommand() {
+        override val command: String
+            get() {
+                if(clockwise) {
+                    return "savegauge $gaugeNumber $x $y $radius $radiusInner $start $end 0"
+                } else {
+                    return "savegauge $gaugeNumber $x $y $radius $radiusInner $start $end 1"
+                }
+            }
+    }
+    // endregion gauge
 }
 
 /**
