@@ -19,7 +19,7 @@ data class TextWidget(
         val widgets = mutableListOf<LayoutWidget>()
 
         if (color != null) {
-            widgets += LayoutWidget.Font(color.getGrayscale())
+            widgets += LayoutWidget.Color(color.getGrayscale())
         }
 
         if (font != null) {
@@ -33,6 +33,5 @@ data class TextWidget(
 
         return widgets
     }
-
 }
 
