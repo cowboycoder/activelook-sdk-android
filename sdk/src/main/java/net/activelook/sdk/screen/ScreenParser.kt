@@ -10,6 +10,7 @@ import net.activelook.sdk.exception.JsonVersionInvalidException
 import net.activelook.sdk.layout.LayoutWidget
 import net.activelook.sdk.util.Point
 import net.activelook.sdk.widget.*
+import java.lang.IllegalArgumentException
 
 internal object ScreenParser {
 
@@ -104,8 +105,8 @@ internal object ScreenParser {
         @JsonClass(generateAdapter = true)
         internal class TextWidgetJson(
             val position: PositionJson,
-            val color: String,
-            val font: String,
+            var color: String?,
+            var font: String?,
             val value: String
         ) : WidgetJson(WidgetType.text) {
 
@@ -114,8 +115,26 @@ internal object ScreenParser {
                     this.position.x,
                     this.position.y,
                     this.value,
-                    color = Color(color)
+                    font = findFont(font),
+                    color = makeColor(color)
                 )
+            }
+
+            private fun findFont(font: String?) : Font? {
+                if(font == null) {
+                    return null
+                }
+                try {
+                    return Font.valueOf(font)
+                } catch (e: IllegalArgumentException) { }
+                return Font.findFont(font)
+            }
+
+            private fun makeColor(color: String?) : Color? {
+                if(color == null) {
+                    return null
+                }
+                return Color(color)
             }
         }
 
