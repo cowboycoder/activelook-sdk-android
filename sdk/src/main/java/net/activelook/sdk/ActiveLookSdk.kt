@@ -170,6 +170,11 @@ class ActiveLookSdk private constructor(private val bleManager: BluetoothManager
         operationProcessor?.shutdown()
     }
 
+    val isConnected : Boolean
+        get() {
+            return currentSession != null
+    }
+
     // endregion Connection
 
     // region Operations
