@@ -269,6 +269,9 @@ class ActiveLookSdk private constructor(private val bleManager: BluetoothManager
                         if (layoutId > lastBitmapId) {
                             lastBitmapId = layoutId
                         }
+                        val width = result?.groupValues?.get(2)?.toIntOrNull() ?: return
+                        val height = result?.groupValues?.get(3)?.toIntOrNull() ?: return
+                        addStoredBitmap(layoutId, width, height)
                     }
                     notificationMutex.release()
                 }
@@ -278,7 +281,7 @@ class ActiveLookSdk private constructor(private val bleManager: BluetoothManager
         operationProcessor?.enqueueOperation(ActiveLookOperation.Notify.TxServer)
         operationProcessor?.enqueueOperation(ActiveLookOperation.Notify.BatteryLevel)
         operationProcessor?.enqueueOperation(ActiveLookOperation.Notify.Flow)
-        //operationProcessor?.enqueueOperation(ActiveLookOperation.ListBitmaps)
+        operationProcessor?.enqueueOperation(ActiveLookOperation.ListBitmaps)
 
         connectionListener?.activeLookConnectionEstablished()
     }
@@ -293,4 +296,27 @@ class ActiveLookSdk private constructor(private val bleManager: BluetoothManager
     }
 
     // endregion GattSessionListener
+
+    // region BitmapManager
+
+    class StoredBitmap {
+        var index: Int = 0
+
+        var id: Int = -1
+
+        var width: Int = 0
+        var height: Int = 0
+
+        constructor(i: Int, w: Int, h: Int) {
+            index = i
+            width = w
+            height = h
+        }
+    }
+
+    internal val storedBitmaps : MutableList<StoredBitmap> = mutableListOf()
+
+    private fun addStoredBitmap(index: Int, w: Int, h: Int) {
+        storedBitmaps += StoredBitmap(index, w, h)
+    }
 }
