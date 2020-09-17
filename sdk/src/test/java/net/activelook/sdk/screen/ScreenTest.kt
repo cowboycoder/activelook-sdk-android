@@ -275,4 +275,37 @@ class ScreenTest {
         assertEquals(247, screen.y1)
         assertEquals(listOf(widget), screen.widgets)
     }
+
+    @Test
+    fun `vertical offset test, multiview`() {
+        val yOffs = Screen.HEIGHT / 2
+        val multiViewTop = Screen.Builder(15, Screen.TOP_HALF)
+                .setPadding(0, 0, 0, yOffs)
+//                .setRelativePositions(true)
+                .setBackgroundColor(0)
+                .setForegroundColor(15)
+                .setFont(Font.LARGE)
+                .setText(Point(30, 30), Orientation.R4, true)
+                .addWidget(TextWidget(250, 50, "Units", Font.SMALL))
+                .addWidget(TextWidget(90, 90, "Title", Font.MEDIUM))
+
+        val multiViewBottom = Screen.Builder(16, Screen.BOTTOM_HALF)
+                .setPadding(0, yOffs, 0, 0)
+//                .setRelativePositions(true)
+                .setBackgroundColor(0)
+                .setForegroundColor(15)
+                .setFont(Font.LARGE)
+                .setText(Point(30, 30), Orientation.R4, true)
+                .addWidget(TextWidget(250, 50 + yOffs, "Units", Font.SMALL))
+                .addWidget(TextWidget(90, 90 + yOffs, "Title", Font.MEDIUM))
+
+        val cmd1 = multiViewTop.build().mapToLayout(15 + 9, 0).mapToCommand()
+        val cmd2 = multiViewBottom.build().mapToLayout(16 + 9, 0).mapToCommand()
+
+        assertEquals("181A000080012FFF0F0003010111E10401040109003500CD05556E69747304020900D500A5055469746C65", cmd1)
+        assertEquals("191A000000012F7F0F00030101116104010401090035004D05556E69747304020900D50025055469746C65", cmd2)
+
+//        assertEquals("1F1A000000012F7F0F00030101116104010401090035004D05556E69747304020900D50025055469746C65", cmd1)
+//        assertEquals("201A000080012FFF0F0003010111E10401040109003500CD05556E69747304020900D500A5055469746C65", cmd2)
+    }
 }

@@ -4,7 +4,7 @@ import net.activelook.sdk.screen.Screen
 import net.activelook.sdk.util.toHex
 
 
-internal data class Layout(
+data class Layout(
     val id: Int,
     val x0: Int,
     val y0: Int,
@@ -49,7 +49,7 @@ internal data class Layout(
 
 }
 
-internal interface LayoutWidget {
+interface LayoutWidget {
     fun mapToCommand(): String
 
     fun getCommandSize(): Int {

@@ -1,11 +1,11 @@
 package net.activelook.sdk.command
 
-import android.graphics.Point
 import android.graphics.Rect
 import net.activelook.sdk.blemodel.Characteristic
 import net.activelook.sdk.blemodel.Service
 import net.activelook.sdk.layout.Layout
 import net.activelook.sdk.screen.Screen
+import net.activelook.sdk.util.Point
 import java.nio.charset.Charset
 import kotlin.math.max
 import kotlin.math.min
@@ -26,7 +26,7 @@ internal interface NeedPreviousResults {
 
 internal interface NeedFastConnection
 
-internal sealed class ActiveLookCommand {
+sealed class ActiveLookCommand {
 
     abstract val command: String
 
@@ -49,6 +49,10 @@ internal sealed class ActiveLookCommand {
     // region Misc
     object Clear: ActiveLookCommand() {
         override val command = "clear"
+    }
+
+    data class Grey(val color: Int): ActiveLookCommand() {
+        override val command = "grey $color"
     }
 
     data class Debug(val on: Boolean) : ActiveLookCommand() {
@@ -138,11 +142,45 @@ internal sealed class ActiveLookCommand {
                 }
             }
     }
+
+    class Circle(private val centre: Point, private val radius: Int, private val filled: Boolean): ActiveLookCommand() {
+
+        constructor(x: Int, y: Int, r: Int, filled: Boolean) : this(
+                Point(x, y), r, filled
+        )
+
+        override val command: String
+            get() {
+                val x = Screen.MAX_WIDTH - centre.x
+                val y = Screen.MAX_HEIGHT - centre.y
+                if(filled) {
+                    return "circf $x $y $radius"
+                } else {
+                    return "circ $x $y $radius"
+                }
+            }
+    }
+
+    class Line(private val from: Point, private val to: Point): ActiveLookCommand() {
+
+        constructor(x0: Int, y0: Int, x1: Int, y1: Int) : this(Point(x0, y0), Point(x1, y1))
+
+        override val command: String
+            get() {
+                val x0 = Screen.MAX_WIDTH - from.x
+                val y0 = Screen.MAX_HEIGHT - from.y
+                val x1 = Screen.MAX_WIDTH - to.x
+                val y1 = Screen.MAX_HEIGHT - to.y
+                return "line $x0 $y0 $x1 $y1"
+            }
+    }
+
     // endregion Shapes
 
     // region Text
     class Text(text: String, origin: Point, rotation: Int, fontSize: Int, color: Int): ActiveLookCommand() {
-        override val command = "txt ${origin.x} ${origin.y} $rotation $fontSize $color $text"
+        // Currently the X/Y position needs adjusting due to physical screen orientation
+        override val command = "txt ${Screen.MAX_WIDTH - origin.x} ${Screen.MAX_HEIGHT - origin.y} $rotation $fontSize $color $text"
     }
     // endregion Text
 
@@ -161,7 +199,8 @@ internal sealed class ActiveLookCommand {
     }
 
     data class Bitmap(val bitmapNumber: Int, val x: Int, val y: Int) : ActiveLookCommand() {
-        override val command = "bitmap $bitmapNumber $x $y"
+        // Currently the X/Y position needs adjusting due to physical screen orientation
+        override val command = "bitmap $bitmapNumber ${Screen.MAX_WIDTH - x} ${Screen.MAX_HEIGHT - y}"
     }
 
     data class EraseBitmap(val bitmapNumber: Int) : ActiveLookCommand() {
@@ -202,6 +241,16 @@ internal sealed class ActiveLookCommand {
             }
     }
 
+    data class SaveLayoutBytes(
+            val layoutData: String
+    ) : ActiveLookCommand() {
+
+        override val command: String
+            get() {
+                return "savelayout 0x${layoutData}"
+            }
+    }
+
     data class EraseLayout(
         val layoutId: Int
     ) : ActiveLookCommand() {
@@ -213,6 +262,26 @@ internal sealed class ActiveLookCommand {
     }
 
     // endregion Layout
+
+    // region gauge
+
+    data class GaugeValue(val gaugeNumber: Int, val value: Int) : ActiveLookCommand() {
+        override val command: String = "gauge $gaugeNumber $value"
+    }
+
+    data class GaugeConfigure(val gaugeNumber: Int, val x: Int, val y: Int, val radius: Int, val radiusInner: Int,
+                              val start: Int, val end: Int, val clockwise: Boolean) : ActiveLookCommand() {
+        override val command: String
+            get() {
+                if(clockwise) {
+                    return "savegauge $gaugeNumber $x $y $radius $radiusInner $start $end 0"
+                } else {
+                    return "savegauge $gaugeNumber $x $y $radius $radiusInner $start $end 1"
+                }
+            }
+    }
+
+    // endregion gauge
 }
 
 /**

@@ -3,6 +3,7 @@ package net.activelook.sdk.widget
 import net.activelook.sdk.Font
 import net.activelook.sdk.layout.LayoutWidget
 import net.activelook.sdk.screen.Color
+import net.activelook.sdk.util.Point
 
 /**
  * Add a text to the [net.activelook.sdk.screen.Screen]
@@ -33,5 +34,10 @@ data class TextWidget(
 
         return widgets
     }
+
+    val position: Point
+        get() {
+            return Point(x, y)
+        }
 }
 

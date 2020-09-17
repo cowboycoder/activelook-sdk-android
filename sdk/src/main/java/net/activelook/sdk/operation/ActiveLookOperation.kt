@@ -1,9 +1,14 @@
 package net.activelook.sdk.operation
 
-import android.graphics.*
+import android.graphics.Bitmap
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.Rect
 import android.util.Base64
+import net.activelook.sdk.Font
 import net.activelook.sdk.command.ActiveLookCommand
 import net.activelook.sdk.screen.Screen
+import net.activelook.sdk.util.Point
 
 private val screens = mutableListOf<Screen>()
 private val dynamicTexts = mutableMapOf<Int, String>()
@@ -45,6 +50,59 @@ sealed class ActiveLookOperation {
         )
     }
 
+    class DrawText(private val text: String, private val at: Point, private val font: Font = Font.MEDIUM): ActiveLookOperation() {
+        internal override val commands: Array<ActiveLookCommand>
+            get() {
+                var commands = arrayOf<ActiveLookCommand>()
+                commands += ActiveLookCommand.Text(text, at, 4, font.value, 15)
+                return commands
+            }
+    }
+
+    class DrawPath(private val path: ArrayList<Point>) : ActiveLookOperation() {
+
+        internal override val commands: Array<ActiveLookCommand>
+            get() {
+                var commands = arrayOf<ActiveLookCommand>()
+
+                var lastPoint : Point? = null
+                path.forEach {
+                    if(lastPoint != null) {
+                        if(Screen.isOnScreen(lastPoint!!) || Screen.isOnScreen(it)) {
+                            commands += ActiveLookCommand.Line(lastPoint!!, it)
+                        }
+                    }
+                    lastPoint = it
+                }
+
+                return commands
+            }
+    }
+
+    class DrawRect(private val rect: Rect) : ActiveLookOperation() {
+
+        override val commands: Array<ActiveLookCommand>
+            get() {
+                return arrayOf(ActiveLookCommand.Rectangle(rect, false))
+            }
+    }
+
+    class DrawCircle(private val centre: Point, private val radius: Int) : ActiveLookOperation() {
+
+        override val commands: Array<ActiveLookCommand>
+            get() {
+                return arrayOf(ActiveLookCommand.Circle(centre, radius, false))
+            }
+    }
+
+    class DrawBitmap(private val bmpId: Int, private val at: Point) : ActiveLookOperation() {
+
+        override val commands: Array<ActiveLookCommand>
+            get() {
+                return arrayOf(ActiveLookCommand.Bitmap(bmpId, at.x, at.y))
+            }
+    }
+
     /**
      * Power on or off the screen.
      *
@@ -68,6 +126,12 @@ sealed class ActiveLookOperation {
 
         internal override val commands: Array<ActiveLookCommand> = arrayOf(
             ActiveLookCommand.Clear
+        )
+    }
+
+    class FillScreen(color: Int): ActiveLookOperation() {
+        internal override val commands: Array<ActiveLookCommand> = arrayOf(
+            ActiveLookCommand.Grey(color)
         )
     }
 
@@ -134,7 +198,7 @@ sealed class ActiveLookOperation {
         )
     }
 
-    private class AddBitmap(private val bitmap: Bitmap) : ActiveLookOperation() {
+    class AddBitmap(private val bitmap: Bitmap) : ActiveLookOperation() {
         internal override val commands: Array<ActiveLookCommand>
             get() {
                 val grayByteArray = toGrayByteArray(bitmap)
@@ -142,7 +206,7 @@ sealed class ActiveLookOperation {
 
                 var commands = arrayOf<ActiveLookCommand>(
                     ActiveLookCommand.SaveBitmap(
-                        grayByteArray.size / 2,
+                        grayByteArray.size,
                         bitmap.width
                     )
                 )
@@ -158,6 +222,11 @@ sealed class ActiveLookOperation {
             }
     }
 
+    class DisplayBitmap(val bmpId : Int, val x : Int, val y : Int) : ActiveLookOperation() {
+        override val commands: Array<ActiveLookCommand>
+            get() { return arrayOf(ActiveLookCommand.Bitmap(bmpId, x, y)) }
+    }
+
     /**
      * Get the list of bitmaps with their id and size
      */
@@ -167,6 +236,10 @@ sealed class ActiveLookOperation {
         )
     }
 
+    object ClearBitmaps : ActiveLookOperation() {
+        override val commands: Array<ActiveLookCommand>
+            get() = arrayOf(ActiveLookCommand.EraseAllBitmaps)
+    }
     /**
      * Add a screen to the device
      *
@@ -185,6 +258,13 @@ sealed class ActiveLookOperation {
                 commands += ActiveLookCommand.SaveLayout(layout)
 
                 return commands
+            }
+    }
+
+    class RestoreScreen(private val layoutData: String) : ActiveLookOperation() {
+        internal override val commands: Array<ActiveLookCommand>
+            get() {
+                return arrayOf(ActiveLookCommand.SaveLayoutBytes(layoutData))
             }
     }
 
@@ -266,17 +346,45 @@ sealed class ActiveLookOperation {
             }
     }
 
+    class CommandList(private val list: Array<ActiveLookCommand>) : ActiveLookOperation() {
+        override val commands = list
+    }
+
+    class DrawListBuilder {
+
+    }
+
+    class ConfigureGauge(val gaugeNumber: Int, val x: Int, val y: Int, val radius: Int, val radiusInner: Int,
+                         val start: Int, val end: Int, val clockwise: Boolean) : ActiveLookOperation() {
+        override val commands: Array<ActiveLookCommand>
+            get() {
+                return arrayOf(ActiveLookCommand.GaugeConfigure(gaugeNumber, x, y, radius, radiusInner, start, end, clockwise))
+            }
+    }
+
+    class DisplayGauge(val gaugeNumber: Int, val value: Int) : ActiveLookOperation() {
+        override val commands: Array<ActiveLookCommand>
+            get() {
+                return arrayOf(ActiveLookCommand.GaugeValue(gaugeNumber, value))
+            }
+    }
+
     internal fun toGrayByteArray(bitmap: Bitmap): ByteArray {
         val grayList = mutableListOf<Byte>()
-        for (x in 0 until bitmap.width) {
-            for (y in 0 until bitmap.height) {
+        var gray : Int = 0
+        for (y in 0 until bitmap.height) {
+            for (x in 0 until bitmap.width) {
                 val pixel = bitmap.getPixel(x, y)
                 val red = Color.red(pixel)
                 val green = Color.red(pixel)
                 val blue = Color.red(pixel)
                 val color = net.activelook.sdk.screen.Color(red, green, blue)
-                val gray = color.getGrayscale()
-                grayList += gray.toByte()
+                if(x % 2 == 0) {
+                    gray = color.getGrayscale().and(15) * 16
+                } else {
+                    gray.or(color.getGrayscale().and(15))
+                    grayList += gray.toByte()
+                }
             }
         }
 
@@ -288,4 +396,43 @@ sealed class ActiveLookOperation {
         val encoded = chunked.filter { it != '\r' }
         return encoded
     }
+
+/*
+    internal fun toGrayByteArray(bitmap: Bitmap): ByteArray {
+        var line: String = ""
+        val grayList = mutableListOf<Byte>()
+        var gray: Int = 0
+        for (y in 0 until bitmap.height) {
+            for (x in 0 until bitmap.width) {
+                val pixel = bitmap.getPixel(x, y)
+                val red = Color.red(pixel)
+                val green = Color.red(pixel)
+                val blue = Color.red(pixel)
+                if(x % 2 == 0) {
+                    gray = (toGrayScale(red, green, blue) * 16)
+                } else {
+                    gray += (toGrayScale(red, green, blue))
+                    line += gray.toHex(2)
+                    grayList += gray.toByte()
+                }
+            }
+            Log.d("BMP", "As Hex: $line")
+            line = ""
+        }
+
+        return grayList.toByteArray()
+    }
+
+    private fun toGrayScale(r: Int, g: Int, b: Int): Int {
+        val linear = 0.2126f * r + 0.7152f * g + 0.0722f * b
+        return (linear / 17).toInt()
+    }
+
+    internal fun toBase64(grayByteArray: ByteArray): String {
+        val chunked = Base64.encodeToString(grayByteArray, Base64.DEFAULT)
+        val encoded = chunked.filter { it != '\r' }
+        return encoded
+    }
+*/
+
 }

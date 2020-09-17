@@ -911,4 +911,132 @@ class ScreenParserTest {
 
         Screen.Builder(json).build()
     }
+
+    @Test
+    fun generateTopHalfMultiScreen() {
+
+        val json = """
+            |{
+            |    "version": 1,
+            |    "id": "22",
+            |    "padding": {
+            |        "left": 0,
+            |        "right": 0,
+            |        "top": 0,
+            |        "bottom": 128
+            |    },
+            |  "textOrigin": {
+            |    "x": 30,
+            |    "y": 30
+            |  },
+            |  "textOrientation": "R4",
+            |  "foregroundColor": 15,
+            |  "backgroundColor": 0,
+            |  "font": "large",
+            |  "widgets": [
+            |        {
+            |            "type": "text",
+            |            "position": {
+            |                "x": 250,
+            |                "y": 50
+            |            },
+            |            "orientation": 4,
+            |            "font": "small",
+            |            "size": 28,
+            |            "value": "Units"
+            |        },
+            |        {
+            |            "type": "text",
+            |            "position": {
+            |                "x": 90,
+            |                "y": 90
+            |            },
+            |            "orientation": 4,
+            |            "font": "medium",
+            |            "size": 48,
+            |            "value": "Title"
+            |        }
+            |  ]
+            |}"""
+                .trimMargin()
+
+        val screen = Screen.Builder(json).build()
+
+        assertEquals(31, screen.id)
+
+        val unitsText = screen.widgets[0]
+
+        val titleText = screen.widgets[1]
+
+        assertEquals(2, screen.widgets.size)
+
+        val layout = screen.mapToLayout(9 + 22, 0)
+        val cmd = layout.mapToCommand()
+
+        assertEquals("1F1A000000012F7F0F00030101116104010401090035004D05556E69747304020900D50025055469746C65", cmd)
+    }
+
+    @Test
+    fun generateBottomHalfMultiScreen() {
+
+        val json = """
+            |{
+            |    "version": 1,
+            |    "id": "22",
+            |    "padding": {
+            |        "left": 0,
+            |        "right": 0,
+            |        "top": 128,
+            |        "bottom": 0
+            |    },
+            |  "textOrigin": {
+            |    "x": 30,
+            |    "y": 30
+            |  },
+            |  "textOrientation": "R4",
+            |  "foregroundColor": 15,
+            |  "backgroundColor": 0,
+            |  "font": "large",
+            |  "widgets": [
+            |        {
+            |            "type": "text",
+            |            "position": {
+            |                "x": 250,
+            |                "y": 50
+            |            },
+            |            "orientation": 4,
+            |            "font": "small",
+            |            "size": 28,
+            |            "value": "Units"
+            |        },
+            |        {
+            |            "type": "text",
+            |            "position": {
+            |                "x": 90,
+            |                "y": 90
+            |            },
+            |            "orientation": 4,
+            |            "font": "medium",
+            |            "size": 48,
+            |            "value": "Title"
+            |        }
+            |  ]
+            |}"""
+                .trimMargin()
+
+        val screen = Screen.Builder(json).build()
+
+        assertEquals(31, screen.id)
+
+        val unitsText = screen.widgets[0]
+
+        val titleText = screen.widgets[1]
+
+        assertEquals(2, screen.widgets.size)
+
+        val layout = screen.mapToLayout(9 + 22, 0)
+        val cmd = layout.mapToCommand()
+
+        assertEquals("1F1A000000012F7F0F00030101116104010401090035004D05556E69747304020900D50025055469746C65", cmd)
+    }
 }

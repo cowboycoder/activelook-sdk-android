@@ -1,9 +1,13 @@
 package net.activelook.sdk.screen
 
+import android.graphics.Rect
 import net.activelook.sdk.Font
+import net.activelook.sdk.command.ActiveLookCommand
 import net.activelook.sdk.layout.Layout
+import net.activelook.sdk.operation.ActiveLookOperation
 import net.activelook.sdk.util.Point
 import net.activelook.sdk.widget.BitmapWidget
+import net.activelook.sdk.widget.TextWidget
 import net.activelook.sdk.widget.Widget
 import kotlin.math.max
 import kotlin.math.min
@@ -12,7 +16,7 @@ import kotlin.math.min
  * A representation of a view that can display different [Widget]s
  * like text, circle, rectangle, etc.
  */
-class Screen private constructor(
+open class Screen private constructor(
     /**
      * Id of the screen, starts with 10
      */
@@ -82,6 +86,15 @@ class Screen private constructor(
          */
         const val MAX_HEIGHT = HEIGHT - 1
 
+        @JvmStatic
+        val TOP_HALF = Rect(0, 0, MAX_WIDTH, (HEIGHT / 2) - 1)
+        @JvmStatic
+        val BOTTOM_HALF = Rect(0, (HEIGHT / 2), MAX_WIDTH, MAX_HEIGHT)
+        @JvmStatic
+        val TOP_HALF_PAD = Rect(0, 0, 0, HEIGHT / 2)
+        @JvmStatic
+        val BOTTOM_HALF_PAD = Rect(0, MAX_HEIGHT / 2, 0, 0)
+
         internal const val ID_MIN = 10
         internal const val ID_MAX = 59
         internal const val BACKGROUND_MIN = 0
@@ -90,6 +103,19 @@ class Screen private constructor(
         internal const val FOREGROUND_MAX = 15
 
         internal const val SIZE_ADDITIONAL_COMMANDS_MAX = 127 - 17
+
+        @JvmStatic
+        fun isOnScreen(point: Point): Boolean {
+            if(point.x < 0)
+                return false
+            if(point.x > MAX_WIDTH)
+                return false
+            if(point.y < 0)
+                return false
+            if(point.y > MAX_HEIGHT)
+                return false
+            return true
+        }
     }
 
     class Builder private constructor() {
@@ -100,6 +126,7 @@ class Screen private constructor(
         private var paddingRight = 0
         private var paddingTop = 0
         private var paddingBottom = 0
+        private var clipRect : Rect? = null
 
         private var foreground: Int = 0
         private var background: Int = 15
@@ -113,6 +140,12 @@ class Screen private constructor(
         internal constructor(id: Int) : this() {
             val shifted = id + ID_MIN - 1
             setId(shifted)
+        }
+
+        constructor(id: Int, region: Rect) : this(id) {
+            // Convert rect to internal 'padding'
+            setPadding(region.left, region.top,
+                    Screen.MAX_WIDTH - region.right, Screen.MAX_HEIGHT - region.bottom)
         }
 
         /**
@@ -153,6 +186,15 @@ class Screen private constructor(
             this.id = max(min(id, ID_MAX), ID_MIN)
         }
 
+        fun getId() : Int {
+            return this.id
+        }
+
+        fun setClipRect(region: Rect) : Builder {
+            this.clipRect = region
+            return this
+        }
+
         internal fun setPadding(left: Int, top: Int, right: Int, bottom: Int): Builder {
             this.paddingLeft = left
             this.paddingTop = top
@@ -162,32 +204,43 @@ class Screen private constructor(
             return this
         }
 
-        internal fun addWidget(widget: Widget): Builder {
+        fun addWidget(widget: Widget): Builder {
             this.widgets.add(widget)
             return this
         }
 
-        internal fun setBackgroundColor(color: Int): Builder {
+        fun clearWidgets(): Builder {
+            this.widgets.clear()
+            return this
+        }
+
+        fun setBackgroundColor(color: Int): Builder {
             this.background = max(min(color, BACKGROUND_MAX), BACKGROUND_MIN)
             return this
         }
 
-        internal fun setForegroundColor(color: Int): Builder {
+        fun setForegroundColor(color: Int): Builder {
             this.foreground = max(min(color, FOREGROUND_MAX), FOREGROUND_MIN)
             return this
         }
 
-        internal fun setFont(font: Font): Builder {
+        fun setFont(font: Font): Builder {
             this.font = font
             return this
         }
 
-        internal fun setText(
+        fun setText(
             position: Point,
             orientation: Orientation,
             isVisible: Boolean
         ): Builder {
-            this.textPosition = position
+            if(clipRect != null) {
+//                setPadding(region.left, region.top,
+//                    Screen.MAX_WIDTH - region.right, Screen.MAX_HEIGHT - region.bottom)
+                this.textPosition = position.offset(clipRect!!.left, clipRect!!.top)
+            } else {
+                this.textPosition = position
+            }
             this.textRotation = orientation
             this.textOpacity = isVisible
             return this
@@ -233,9 +286,25 @@ class Screen private constructor(
                 widgets
             )
         }
+
+        fun toOperationList(withText: String): Array<ActiveLookCommand> {
+            val commands : MutableList<ActiveLookCommand> = mutableListOf(
+                    ActiveLookCommand.Color(background),
+                    ActiveLookCommand.Rectangle(paddingLeft, paddingTop, MAX_WIDTH - paddingRight, MAX_HEIGHT - paddingBottom, true),
+                    ActiveLookCommand.Color(foreground),
+                    ActiveLookCommand.Rectangle(paddingLeft, paddingTop, MAX_WIDTH - paddingRight, MAX_HEIGHT - paddingBottom, false),
+                    ActiveLookCommand.Text(withText, textPosition.offset(paddingLeft, paddingTop), textRotation.value, font.value, foreground)
+                )
+            widgets.forEach {
+                when(it) {
+                    is TextWidget -> { commands += ActiveLookCommand.Text(it.text, it.position.offset(paddingLeft, paddingTop), textRotation.value, it.font!!.value, foreground)}
+                }
+            }
+            return commands.toTypedArray()
+        }
     }
 
-    internal fun mapToLayout(startLayoutId: Int, startBitmapId: Int): Layout {
+    fun mapToLayout(startLayoutId: Int, startBitmapId: Int): Layout {
         val widgets =
             widgets.filter { it !is BitmapWidget }.flatMap { it.mapToLayoutWidget(x0, y0) }
         val layout = Layout(

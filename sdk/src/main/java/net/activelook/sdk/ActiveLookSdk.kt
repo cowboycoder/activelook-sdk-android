@@ -277,6 +277,12 @@ class ActiveLookSdk private constructor(private val bleManager: BluetoothManager
                         val width = result?.groupValues?.get(2)?.toIntOrNull() ?: return
                         val height = result?.groupValues?.get(3)?.toIntOrNull() ?: return
                         addStoredBitmap(layoutId, width, height)
+                    } else if (code == 35) {
+                        val bmpId = message.trim().toInt()
+                        Log.d("TEST", "bitmap saved, id = $bmpId")
+                        if (bmpId > lastBitmapId) {
+                            lastBitmapId = bmpId
+                        }
                     }
                     notificationMutex.release()
                 }
@@ -287,6 +293,7 @@ class ActiveLookSdk private constructor(private val bleManager: BluetoothManager
         operationProcessor?.enqueueOperation(ActiveLookOperation.Notify.BatteryLevel)
         operationProcessor?.enqueueOperation(ActiveLookOperation.Notify.Flow)
         operationProcessor?.enqueueOperation(ActiveLookOperation.ListBitmaps)
+        operationProcessor?.enqueueOperation(ActiveLookOperation.SetBrightness(100, true))
 
         connectionListener?.activeLookConnectionEstablished()
     }
